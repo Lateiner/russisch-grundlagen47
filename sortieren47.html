@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Sortieraufgabe (Sofortiges Feedback)</title>
+    <!-- Polyfill für Touch-Support auf Smartphones/Tablets -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --genitiv-color: #e91e63; /* Pink */
+            --akkusativ-color: #2196f3; /* Blau */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success: #4caf50; /* Grün für richtig */
+            --error: #f44336;   /* Rot für falsch */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #e8eaf6;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--primary);
+        }
+
+        /* --- Drag & Drop Bereiche --- */
+        
+        /* Quell-Pool */
+        .source-pool {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px dashed #bbb;
+            min-height: 120px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            align-items: flex-start; /* Wichtig damit Items nicht stretchen */
+            margin-bottom: 20px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        /* Container für die Ziel-Boxen */
+        .target-wrapper {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+
+        /* Die Ziel-Boxen */
+        .target-box {
+            flex: 1;
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Abstand zwischen den gedroppten Items */
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: background-color 0.3s;
+            border-top: 5px solid #ccc;
+        }
+
+        .target-box h3 {
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .target-gen { border-top-color: var(--genitiv-color); }
+        .target-akk { border-top-color: var(--akkusativ-color); }
+
+        .target-gen h3 { color: var(--genitiv-color); }
+        .target-akk h3 { color: var(--akkusativ-color); }
+
+        /* Draggable Items (Kärtchen) */
+        .draggable-item {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: move; /* Fallback */
+            cursor: grab;
+            font-size: 1rem;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+            touch-action: none;
+            width: auto;
+            align-self: center; /* Zentriert in der Box */
+            border: 2px solid transparent;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+            transform: scale(1.05);
+            z-index: 100;
+        }
+
+        /* --- Feedback Zustände (Sofort) --- */
+        .draggable-item.correct {
+            background-color: var(--success);
+            border-color: #2e7d32;
+        }
+
+        .draggable-item.correct::after {
+            content: ' ✓';
+            font-weight: bold;
+        }
+
+        .draggable-item.wrong {
+            background-color: var(--error);
+            border-color: #c62828;
+        }
+        
+        .draggable-item.wrong::after {
+            content: ' ✗';
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 700px) {
+            .target-wrapper {
+                flex-direction: column;
+            }
+            .target-box {
+                min-height: 200px;
+            }
+            .draggable-item {
+                font-size: 0.9rem;
+                padding: 8px 12px;
+            }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+            transition: opacity 0.2s;
+        }
+        
+        button:hover { opacity: 0.9; }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sortieren: Genitiv oder Akkusativ?</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Ziehen Sie die Ausdrücke in die richtige Spalte. <br>
+        Die Karte färbt sich <strong>grün</strong>, wenn es richtig ist, und <strong>rot</strong>, wenn es falsch ist.</p>
+    </div>
+
+    <!-- Der Pool, wo die Wörter starten -->
+    <div id="source-pool" class="source-pool drop-zone" data-type="pool">
+        <!-- Items werden per JS eingefügt -->
+    </div>
+
+    <!-- Die Ziel-Container -->
+    <div class="target-wrapper">
+        
+        <!-- Genitiv Box -->
+        <div id="target-gen" class="target-box target-gen drop-zone" data-type="gen">
+            <h3>Muss GENITIV sein<br><small>(Родительный)</small></h3>
+        </div>
+
+        <!-- Akkusativ Box -->
+        <div id="target-akk" class="target-box target-akk drop-zone" data-type="akk">
+            <h3>Muss/Kann AKKUSATIV sein<br><small>(Винительный)</small></h3>
+        </div>
+
+    </div>
+
+    <div class="controls">
+        <!-- Check Button entfernt -->
+        <button class="btn-reset" onclick="resetGame()">Alles Zurücksetzen</button>
+        <button class="btn-solve" onclick="solveGame()">Lösung anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // --- DATEN ---
+    const itemsData = [
+        { id: 1, text: "не иметь права", type: "gen" },
+        { id: 2, text: "нет времени", type: "gen" },
+        { id: 3, text: "не знал правды", type: "gen" },
+        { id: 4, text: "ни слова", type: "gen" },
+        { id: 5, text: "не делай этого", type: "gen" },
+        { id: 6, text: "не играть роли", type: "gen" },
+        { id: 7, text: "не обращать внимания", type: "gen" },
+        { id: 8, text: "не чувствовать боли", type: "gen" },
+        { id: 9, text: "не видеть смысла", type: "gen" },
+        { id: 10, text: "не находить места", type: "gen" },
+        
+        { id: 11, text: "не знает Анну", type: "akk" },
+        { id: 12, text: "не читал эту книгу", type: "akk" },
+        { id: 13, text: "не разбить вазу", type: "akk" },
+        { id: 14, text: "чуть не сломал стул", type: "akk" },
+        { id: 15, text: "не морочить голову", type: "akk" },
+        { id: 16, text: "не очень люблю музыку", type: "akk" },
+        { id: 17, text: "не пить этот кофе", type: "akk" },
+        { id: 18, text: "не выучить урок", type: "akk" },
+        { id: 19, text: "не встретить Игоря", type: "akk" },
+        { id: 20, text: "не купить машину", type: "akk" }
+    ];
+
+    const sourcePool = document.getElementById('source-pool');
+    const targetGen = document.getElementById('target-gen');
+    const targetAkk = document.getElementById('target-akk');
+
+    // --- INITIALISIERUNG ---
+    window.onload = function() {
+        resetGame();
+    };
+
+    // --- DRAG & DROP LOGIK ---
+    let draggedElement = null;
+
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('draggable-item')) {
+            draggedElement = e.target;
+            e.dataTransfer.setData('text/plain', e.target.id);
+            e.dataTransfer.effectAllowed = 'move';
+            e.target.style.opacity = '0.5';
+        }
+    });
+
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('draggable-item')) {
+            e.target.style.opacity = '1';
+            draggedElement = null;
+        }
+    });
+
+    const zones = document.querySelectorAll('.drop-zone');
+    zones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+            if (!zone.classList.contains('source-pool')) {
+               zone.style.backgroundColor = '#fafafa';
+            }
+        });
+
+        zone.addEventListener('dragleave', function(e) {
+             zone.style.backgroundColor = '';
+        });
+
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            zone.style.backgroundColor = '';
+            
+            if (draggedElement) {
+                // Item in die Zone bewegen
+                zone.appendChild(draggedElement);
+                
+                // SOFORTIGES FEEDBACK ANWENDEN
+                validateItem(draggedElement, zone);
+            }
+        });
+    });
+
+    // --- VALIDIERUNGSFUNKTION (Sofort) ---
+    function validateItem(element, parentZone) {
+        const itemType = element.dataset.type; // 'gen' oder 'akk'
+        const zoneType = parentZone.dataset.type; // 'pool', 'gen', oder 'akk'
+
+        // Farben zurücksetzen
+        element.classList.remove('correct', 'wrong');
+
+        if (zoneType === 'pool') {
+            // Wenn zurück im Pool, keine Farbe
+            return; 
+        }
+
+        if (itemType === zoneType) {
+            // Richtig
+            element.classList.add('correct');
+        } else {
+            // Falsch
+            element.classList.add('wrong');
+        }
+    }
+
+    // --- RESET & SOLVE ---
+
+    function resetGame() {
+        sourcePool.innerHTML = '';
+        // Alle Karten aus den Zielboxen entfernen (optisch sauberer Neuaufbau)
+        targetGen.innerHTML = '<h3>Muss GENITIV sein<br><small>(Родительный)</small></h3>';
+        targetAkk.innerHTML = '<h3>Muss/Kann AKKUSATIV sein<br><small>(Винительный)</small></h3>';
+
+        const shuffledItems = [...itemsData].sort(() => 0.5 - Math.random());
+
+        shuffledItems.forEach(item => {
+            const el = document.createElement('div');
+            el.classList.add('draggable-item');
+            el.setAttribute('draggable', 'true');
+            el.id = 'item-' + item.id;
+            el.dataset.type = item.type;
+            el.innerText = item.text;
+            sourcePool.appendChild(el);
+        });
+    }
+
+    function solveGame() {
+        // Zuerst alle Farben entfernen für sauberen Status
+        document.querySelectorAll('.draggable-item').forEach(el => {
+            el.classList.remove('correct', 'wrong');
+        });
+
+        itemsData.forEach(item => {
+            const el = document.getElementById('item-' + item.id);
+            if (el) {
+                // In die richtige Box verschieben
+                if (item.type === 'gen') {
+                    targetGen.appendChild(el);
+                } else {
+                    targetAkk.appendChild(el);
+                }
+                // Als richtig markieren
+                el.classList.add('correct');
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>
