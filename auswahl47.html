@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Multiple Choice (Sofort-Feedback)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;     /* Indigo */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            /* Feedback Farben */
+            --correct-bg: #d4edda;
+            --correct-border: #28a745;
+            --correct-text: #155724;
+            --wrong-bg: #f8d7da;
+            --wrong-border: #dc3545;
+            --wrong-text: #721c24;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* --- Aufgaben-Grid --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr; /* Zwei Spalten auf Tablets/Desktop */
+            }
+        }
+
+        /* --- Aufgabenkarte --- */
+        .mc-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .question-header {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .task-number {
+            color: var(--primary);
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        /* --- Optionen (Buttons) --- */
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background-color: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #495057;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            background-color: #e2e6ea;
+            border-color: #ced4da;
+        }
+
+        /* Feedback-Zustände */
+        .option-btn.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-border);
+            color: var(--correct-text);
+            cursor: default;
+        }
+        
+        /* Häkchen für richtig */
+        .option-btn.correct::after {
+            content: '✔';
+            position: absolute;
+            right: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-bg);
+            border-color: var(--wrong-border);
+            color: var(--wrong-text);
+            opacity: 0.8;
+        }
+
+        /* Kreuz für falsch */
+        .option-btn.wrong::after {
+            content: '✖';
+            position: absolute;
+            right: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+        }
+
+        /* --- Hinweis --- */
+        .hint-text {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-top: 15px;
+            font-style: italic;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+        }
+
+        /* --- Globale Buttons --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Multiple Choice: Genitiv oder Akkusativ?</h1>
+
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Klicken Sie auf die richtige Antwort.</p>
+        <p>Sie erhalten sofort Feedback: <span style="color:var(--correct-border); font-weight:bold;">Grün</span> ist richtig, <span style="color:var(--wrong-border); font-weight:bold;">Rot</span> ist falsch.</p>
+    </div>
+
+    <div id="quiz-grid" class="grid-container">
+        <!-- Aufgaben werden hier generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        q: Frage/Satz
+        opts: Array von Antworten [{txt: "...", isCorrect: true/false}]
+        hint: Erklärung
+    */
+    const questions = [
+        // --- GENITIV (ne imet, net, abstrakte Wahrnehmung) ---
+        {
+            q: "Ты не имеешь ...",
+            opts: [
+                { txt: "права", isCorrect: true },
+                { txt: "право", isCorrect: false },
+                { txt: "праву", isCorrect: false }
+            ],
+            hint: "Ausdruck: не иметь + Genitiv"
+        },
+        {
+            q: "У меня нет ...",
+            opts: [
+                { txt: "время", isCorrect: false },
+                { txt: "времени", isCorrect: true },
+                { txt: "временем", isCorrect: false }
+            ],
+            hint: "Verneinung der Existenz (нет) + Genitiv"
+        },
+        {
+            q: "Это не имеет ...",
+            opts: [
+                { txt: "смысл", isCorrect: false },
+                { txt: "смыслу", isCorrect: false },
+                { txt: "смысла", isCorrect: true }
+            ],
+            hint: "не иметь (keinen Sinn haben) + Genitiv"
+        },
+        {
+            q: "Не обращать ...",
+            opts: [
+                { txt: "внимание", isCorrect: false },
+                { txt: "внимания", isCorrect: true },
+                { txt: "внимании", isCorrect: false }
+            ],
+            hint: "Feste Wendung (nicht beachten) + Genitiv"
+        },
+        {
+            q: "Он не сказал ни ...",
+            opts: [
+                { txt: "слова", isCorrect: true },
+                { txt: "слово", isCorrect: false },
+                { txt: "слову", isCorrect: false }
+            ],
+            hint: "Verstärkung durch ни + Genitiv"
+        },
+        {
+            q: "Не делай ...",
+            opts: [
+                { txt: "это", isCorrect: false },
+                { txt: "этому", isCorrect: false },
+                { txt: "этого", isCorrect: true }
+            ],
+            hint: "Abstraktes Pronomen bei Verneinung + Genitiv"
+        },
+        {
+            q: "Он не чувствует ...",
+            opts: [
+                { txt: "боли", isCorrect: true },
+                { txt: "боль", isCorrect: false },
+                { txt: "болю", isCorrect: false }
+            ],
+            hint: "Wahrnehmung/Gefühl (abstrakt) + Genitiv"
+        },
+        {
+            q: "Это не играет ...",
+            opts: [
+                { txt: "роль", isCorrect: false },
+                { txt: "роли", isCorrect: true },
+                { txt: "ролью", isCorrect: false }
+            ],
+            hint: "Feste Wendung (keine Rolle spielen) + Genitiv"
+        },
+        {
+            q: "Я не вижу ... (abstrakt)",
+            opts: [
+                { txt: "выход", isCorrect: false },
+                { txt: "выходу", isCorrect: false },
+                { txt: "выхода", isCorrect: true }
+            ],
+            hint: "Abstrakte Wahrnehmung (keinen Ausweg) + Genitiv"
+        },
+        {
+            q: "Не придавать ...",
+            opts: [
+                { txt: "значения", isCorrect: true },
+                { txt: "значение", isCorrect: false },
+                { txt: "значению", isCorrect: false }
+            ],
+            hint: "Feste Wendung (keine Bedeutung beimessen) + Genitiv"
+        },
+
+        // --- AKKUSATIV (Konkret, Namen, Чуть не, Idiome) ---
+        {
+            q: "Я не знаю ...",
+            opts: [
+                { txt: "Анна", isCorrect: false },
+                { txt: "Анну", isCorrect: true },
+                { txt: "Анне", isCorrect: false }
+            ],
+            hint: "Konkrete Person (Name) -> Akkusativ"
+        },
+        {
+            q: "Он не читал ...",
+            opts: [
+                { txt: "эту книгу", isCorrect: true },
+                { txt: "этой книги", isCorrect: false },
+                { txt: "эта книга", isCorrect: false }
+            ],
+            hint: "Konkretes, bestimmtes Objekt -> Akkusativ"
+        },
+        {
+            q: "Она чуть не разбила ...",
+            opts: [
+                { txt: "ваза", isCorrect: false },
+                { txt: "вазы", isCorrect: false },
+                { txt: "вазу", isCorrect: true }
+            ],
+            hint: "чуть не (fast/beinahe) -> Akkusativ"
+        },
+        {
+            q: "Не морочь мне ...",
+            opts: [
+                { txt: "голову", isCorrect: true },
+                { txt: "голова", isCorrect: false },
+                { txt: "головы", isCorrect: false }
+            ],
+            hint: "Idiom (Kopf verdrehen) -> Akkusativ"
+        },
+        {
+            q: "Ты едва не сломал ...",
+            opts: [
+                { txt: "стул", isCorrect: true },
+                { txt: "стула", isCorrect: false },
+                { txt: "стуле", isCorrect: false }
+            ],
+            hint: "едва не (beinahe) -> Akkusativ"
+        },
+        {
+            q: "Я не очень люблю ...",
+            opts: [
+                { txt: "зима", isCorrect: false },
+                { txt: "зимы", isCorrect: false },
+                { txt: "зиму", isCorrect: true }
+            ],
+            hint: "Verneinung liegt nicht auf Verb (nicht sehr) -> Akkusativ"
+        },
+        {
+            q: "Не забудь ...",
+            opts: [
+                { txt: "сумку", isCorrect: true },
+                { txt: "сумки", isCorrect: false },
+                { txt: "сумке", isCorrect: false }
+            ],
+            hint: "Konkretes Objekt -> Akkusativ"
+        },
+        {
+            q: "Вы не видели ... ?",
+            opts: [
+                { txt: "маму", isCorrect: true },
+                { txt: "мамы", isCorrect: false },
+                { txt: "мама", isCorrect: false }
+            ],
+            hint: "Konkrete Person -> Akkusativ"
+        },
+        {
+            q: "Я не пью ... (bestimmt)",
+            opts: [
+                { txt: "холодную воду", isCorrect: true },
+                { txt: "холодной воды", isCorrect: false },
+                { txt: "холодная вода", isCorrect: false }
+            ],
+            hint: "Konkretes Objekt -> Akkusativ"
+        },
+        {
+            q: "Мы не купили ...",
+            opts: [
+                { txt: "машина", isCorrect: false },
+                { txt: "машины", isCorrect: false },
+                { txt: "машину", isCorrect: true }
+            ],
+            hint: "Konkretes Objekt -> Akkusativ"
+        }
+    ];
+
+    const container = document.getElementById('quiz-grid');
+
+    // Mischen (Fisher-Yates)
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function renderTasks() {
+        container.innerHTML = '';
+
+        questions.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = 'mc-card';
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'question-header';
+            header.innerHTML = `<span class="task-number">${idx + 1}.</span> ${item.q}`;
+            card.appendChild(header);
+
+            // Options Container
+            const optsContainer = document.createElement('div');
+            optsContainer.className = 'options-container';
+
+            // Mischen der Optionen für die Anzeige
+            // Wir erstellen eine Kopie und fügen einen Index hinzu, um später die Richtigkeit zu prüfen
+            let displayOpts = item.opts.map((opt, i) => ({ ...opt, originalIndex: i }));
+            shuffle(displayOpts);
+
+            displayOpts.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.txt;
+                
+                // Event Listener für Klick
+                btn.onclick = function() {
+                    handleSelection(this, opt.isCorrect, optsContainer);
+                };
+
+                optsContainer.appendChild(btn);
+            });
+
+            card.appendChild(optsContainer);
+
+            // Hinweis (Hint)
+            const hint = document.createElement('div');
+            hint.className = 'hint-text';
+            hint.innerText = item.hint;
+            card.appendChild(hint);
+
+            container.appendChild(card);
+        });
+    }
+
+    function handleSelection(btn, isCorrect, container) {
+        // Optional: Verhindern, dass man andere klickt, wenn man schon richtig geantwortet hat?
+        // Hier: Wir lassen Korrekturen zu, aber markieren die geklickte sofort.
+        
+        // Wenn richtig
+        if (isCorrect) {
+            btn.classList.add('correct');
+            btn.classList.remove('wrong');
+            
+            // Optional: Alle anderen Buttons deaktivieren, wenn richtig
+            const siblings = container.querySelectorAll('.option-btn');
+            siblings.forEach(sib => {
+                if (sib !== btn) {
+                    sib.classList.add('disabled');
+                    // Wenn wir wollen, dass falsche Antworten ausgeblendet werden oder ähnlich, hier Code einfügen
+                }
+            });
+        } 
+        // Wenn falsch
+        else {
+            btn.classList.add('wrong');
+            // Benutzer kann weiter probieren, daher deaktivieren wir die anderen NICHT
+        }
+    }
+
+    function resetAll() {
+        // Einfach neu rendern, das mischt auch neu
+        renderTasks();
+    }
+
+    function showSolutions() {
+        // Alle Karten durchgehen
+        const cards = document.querySelectorAll('.mc-card');
+        
+        // Wir müssen hier etwas tricksen, da wir die Optionen gemischt haben.
+        // Aber wir können einfach nach dem Text suchen oder die Struktur neu aufbauen.
+        // Einfacher: Wir schauen uns das `onclick` Verhalten an oder wir rendern neu im "Gelöst"-Modus?
+        // Besser: Wir iterieren über die Buttons und prüfen ihren Text gegen das Daten-Array.
+        // Da die Buttons keinen direkten Link zu den Daten haben außer dem Closure,
+        // ist der sauberste Weg, die Buttons basierend auf einer Eigenschaft zu markieren.
+        // ODER: Wir bauen beim Rendern ein data-Attribut ein.
+        
+        // Neu rendern ist sauberer, aber wir wollen den Zustand "zeigen".
+        // Also: Reset + Markieren.
+        
+        // Umbau: Wir fügen data-is-correct="true" beim Rendern hinzu.
+        
+        // Da ich die render-Funktion oben schon geschrieben habe, füge ich das Attribut im DOM direkt hinzu (siehe unten bei renderTasks Update).
+        // Um den Code kurz zu halten, löschen wir das Grid und bauen es "gelöst" neu auf.
+        
+        container.innerHTML = '';
+
+        questions.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = 'mc-card';
+
+            const header = document.createElement('div');
+            header.className = 'question-header';
+            header.innerHTML = `<span class="task-number">${idx + 1}.</span> ${item.q}`;
+            card.appendChild(header);
+
+            const optsContainer = document.createElement('div');
+            optsContainer.className = 'options-container';
+
+            // Nicht mischen beim Lösen, oder doch? Besser nicht mischen, damit es einheitlich aussieht?
+            // Doch, sonst wirkt es komisch. Wir nehmen die Original-Reihenfolge oder mischen neu.
+            // Wir zeigen einfach die Optionen an und markieren die richtige.
+            
+            item.opts.forEach((opt) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn disabled'; // Keine Interaktion
+                btn.innerText = opt.txt;
+                
+                if (opt.isCorrect) {
+                    btn.classList.add('correct');
+                }
+                optsContainer.appendChild(btn);
+            });
+
+            card.appendChild(optsContainer);
+            
+            const hint = document.createElement('div');
+            hint.className = 'hint-text';
+            hint.innerText = item.hint;
+            card.appendChild(hint);
+
+            container.appendChild(card);
+        });
+    }
+
+    // Init
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
