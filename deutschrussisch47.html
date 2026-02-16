@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Übersetzung (Satzbau)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #263238;
+            --german-text: #546e7a;
+            
+            /* Feedback */
+            --correct-bg: #4caf50;
+            --correct-text: #fff;
+            --wrong-bg: #ff5252;
+            --wrong-text: #fff;
+            
+            /* Chip Style */
+            --chip-bg: #eceff1;
+            --chip-border: #cfd8dc;
+            --chip-hover: #dfe6e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* --- Grid Layout --- */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* --- Aufgabenkarte --- */
+        .trans-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Deutscher Satz */
+        .german-sentence {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--german-text);
+            margin-bottom: 5px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .context-hint {
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-style: italic;
+            margin-bottom: 15px;
+            display: inline-block;
+            background: #e8eaf6;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* --- Bau-Bereich (Ergebnis) --- */
+        .build-area {
+            min-height: 50px;
+            background-color: #fafafa;
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            align-items: center;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .build-area.completed {
+            border-color: var(--correct-bg);
+            background-color: #e8f5e9;
+            border-style: solid;
+        }
+
+        /* --- Wort-Pool --- */
+        .word-pool {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* --- Wort-Buttons (Chips) --- */
+        .word-btn {
+            background-color: var(--chip-bg);
+            border: 1px solid var(--chip-border);
+            color: var(--text-color);
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .word-btn:hover {
+            background-color: var(--chip-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .word-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Feedback Animationen */
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+            background-color: var(--wrong-bg) !important;
+            color: var(--wrong-text) !important;
+            border-color: var(--wrong-bg) !important;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .used {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.8);
+        }
+
+        .correct-chip {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            cursor: default;
+        }
+
+        /* --- Globale Controls --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-bottom: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Übersetzung: Genitiv oder Akkusativ?</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Bauen Sie den russischen Satz, indem Sie die Wörter in der richtigen Reihenfolge anklicken.</p>
+        <p><strong>Vorsicht:</strong> Der Wort-Pool enthält Fallen! Sie müssen entscheiden, ob Sie den Genitiv (bei Abstrakta/Existenz) oder den Akkusativ (bei Konkreta) wählen.</p>
+        <p><em>Falsche Wörter werden rot markiert und abgelehnt.</em></p>
+    </div>
+
+    <div id="task-container" class="task-list">
+        <!-- Aufgaben werden hier generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="initGame()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        de: Deutscher Satz
+        hint: Kontext-Hinweis (z.B. "Konkret" oder "Allgemein")
+        ru: Array der KORREKTEN Wörter in der richtigen Reihenfolge.
+        distractors: Array von falschen Wörtern (z.B. falsche Fallendungen), die mit in den Pool kommen.
+    */
+    const tasks = [
+        // 1. Konkret (Akk) vs. Distraktor (Gen)
+        {
+            de: "Ich sehe dieses Auto nicht.",
+            hint: "Konkret: dieses spezielle Auto",
+            ru: ["Я", "не", "вижу", "эту", "машину"],
+            distractors: ["машины", "эта"]
+        },
+        // 2. Abstrakt (Gen) vs. Distraktor (Akk)
+        {
+            de: "Ich sehe keinen Sinn.",
+            hint: "Abstrakt: gar keinen Sinn",
+            ru: ["Я", "не", "вижу", "смысла"],
+            distractors: ["смысл", "смысле"]
+        },
+        // 3. Zeit (Gen bei 'net')
+        {
+            de: "Ich habe keine Zeit.",
+            hint: "Existenz: nicht vorhanden",
+            ru: ["У", "меня", "нет", "времени"],
+            distractors: ["время", "временем"]
+        },
+        // 4. Konkretes Objekt (Akk)
+        {
+            de: "Er liest das Buch nicht.",
+            hint: "Konkret: das Buch dort",
+            ru: ["Он", "не", "читает", "книгу"],
+            distractors: ["книги", "книга"]
+        },
+        // 5. Person (Akk)
+        {
+            de: "Ich kenne Anna nicht.",
+            hint: "Name: Konkrete Person",
+            ru: ["Я", "не", "знаю", "Анну"],
+            distractors: ["Анны", "Анна"]
+        },
+        // 6. Abstrakt / Ausdruck (Gen)
+        {
+            de: "Das spielt keine Rolle.",
+            hint: "Feste Wendung",
+            ru: ["Это", "не", "играет", "роли"],
+            distractors: ["роль", "ролью"]
+        },
+        // 7. Beinahe (Akk)
+        {
+            de: "Sie hat die Vase fast zerbrochen.",
+            hint: "Ausdruck: чуть не (fast)",
+            ru: ["Она", "чуть", "не", "разбила", "вазу"],
+            distractors: ["вазы", "ваза"]
+        },
+        // 8. Verstärkung (Gen)
+        {
+            de: "Er hat kein Wort gesagt.",
+            hint: "Verstärkung: kein einziges",
+            ru: ["Он", "не", "сказал", "ни", "слова"],
+            distractors: ["слово", "слову"]
+        },
+        // 9. Nichts (Gen)
+        {
+            de: "Wir haben nichts gehört.",
+            hint: "Abstrakt: gar nichts",
+            ru: ["Мы", "ничего", "не", "слышали"],
+            distractors: ["ничто"]
+        },
+        // 10. Konkrete Situation (Akk)
+        {
+            de: "Vergiss die Tasche nicht!",
+            hint: "Konkretes Objekt",
+            ru: ["Не", "забудь", "сумку"],
+            distractors: ["сумки", "сумка"]
+        }
+    ];
+
+    const container = document.getElementById('task-container');
+
+    // Mischen-Funktion
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function initGame() {
+        container.innerHTML = '';
+
+        tasks.forEach((task, index) => {
+            // HTML Gerüst
+            const card = document.createElement('div');
+            card.className = 'trans-card';
+            card.id = `card-${index}`;
+            card.dataset.currentIndex = 0; // Welches Wort wird als nächstes erwartet?
+
+            // Deutscher Satz
+            const deSentence = document.createElement('div');
+            deSentence.className = 'german-sentence';
+            deSentence.innerText = task.de;
+            card.appendChild(deSentence);
+
+            // Hinweis
+            const hint = document.createElement('span');
+            hint.className = 'context-hint';
+            hint.innerText = task.hint;
+            card.appendChild(hint);
+
+            // Bau-Bereich (Leer am Anfang)
+            const buildArea = document.createElement('div');
+            buildArea.className = 'build-area';
+            buildArea.id = `build-${index}`;
+            card.appendChild(buildArea);
+
+            // Wort Pool vorbereiten
+            // Wir nehmen alle korrekten Wörter + Distraktoren
+            // Wichtig: Wir müssen wissen, ob ein Wort an der aktuellen Stelle "richtig" ist.
+            // Da Wörter doppelt vorkommen könnten (z.B. "не"), identifizieren wir über den Inhalt.
+            
+            let poolWords = [];
+            
+            // Korrekte Wörter als Objekte
+            task.ru.forEach(word => {
+                poolWords.push({ text: word, type: 'correct' });
+            });
+
+            // Distraktoren
+            task.distractors.forEach(word => {
+                poolWords.push({ text: word, type: 'distractor' });
+            });
+
+            shuffleArray(poolWords);
+
+            const poolDiv = document.createElement('div');
+            poolDiv.className = 'word-pool';
+
+            poolWords.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'word-btn';
+                btn.innerText = item.text;
+                
+                btn.onclick = function() {
+                    handleWordClick(this, item.text, index, task.ru);
+                };
+                poolDiv.appendChild(btn);
+            });
+
+            card.appendChild(poolDiv);
+            container.appendChild(card);
+        });
+    }
+
+    function handleWordClick(btn, text, taskIndex, correctSequence) {
+        const card = document.getElementById(`card-${taskIndex}`);
+        const buildArea = document.getElementById(`build-${taskIndex}`);
+        let currentIndex = parseInt(card.dataset.currentIndex);
+
+        // Prüfung: Ist der geklickte Text identisch mit dem erwarteten Wort?
+        if (text === correctSequence[currentIndex]) {
+            // RICHTIG
+            
+            // 1. Button aus Pool "entfernen" (visuell)
+            btn.classList.add('used');
+
+            // 2. Chip im Bau-Bereich erstellen
+            const correctChip = document.createElement('span');
+            correctChip.className = 'word-btn correct-chip';
+            correctChip.innerText = text;
+            buildArea.appendChild(correctChip);
+
+            // 3. Index erhöhen
+            currentIndex++;
+            card.dataset.currentIndex = currentIndex;
+
+            // 4. Prüfen ob fertig
+            if (currentIndex === correctSequence.length) {
+                buildArea.classList.add('completed');
+            }
+
+        } else {
+            // FALSCH (Sofortiges Feedback)
+            btn.classList.add('shake');
+            
+            // Animation entfernen nach Ablauf, damit sie erneut triggern kann
+            setTimeout(() => {
+                btn.classList.remove('shake');
+            }, 400);
+        }
+    }
+
+    function solveAll() {
+        tasks.forEach((task, index) => {
+            const card = document.getElementById(`card-${index}`);
+            const buildArea = document.getElementById(`build-${index}`);
+            const poolButtons = card.querySelectorAll('.word-pool .word-btn');
+
+            // Reset Area
+            buildArea.innerHTML = '';
+            buildArea.classList.add('completed');
+            
+            // Alle Buttons im Pool "verstecken"
+            poolButtons.forEach(btn => btn.classList.add('used'));
+
+            // Korrekte Wörter einfügen
+            task.ru.forEach(word => {
+                const chip = document.createElement('span');
+                chip.className = 'word-btn correct-chip';
+                chip.innerText = word;
+                buildArea.appendChild(chip);
+            });
+            
+            // Index auf Ende setzen
+            card.dataset.currentIndex = task.ru.length;
+        });
+    }
+
+    // Init
+    window.onload = initGame;
+
+</script>
+
+</body>
+</html>
