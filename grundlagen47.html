@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russische Grammatik: Akkusativ oder Genitiv nach Verneinung</title>
+    <!-- Polyfill für Touch-Geräte -->
+    <script src="https://cdn.jsdelivr.net/npm/drag-drop-touch@1.3.1/DragDropTouch.js"></script>
+    <style>
+        :root {
+            --primary-color: #3f51b5;
+            --secondary-color: #f5f5f5;
+            --success-color: #4caf50;
+            --error-color: #f44336;
+            --warning-color: #ff9800;
+            --info-color: #2196f3;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #eef2f5;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1, h2, h3 { color: var(--primary-color); }
+        h1 { text-align: center; }
+
+        .intro-box {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+
+        .rule-block { margin-bottom: 15px; }
+        .rule-title { font-weight: bold; display: block; margin-bottom: 5px; }
+
+        /* Exercise Styles */
+        .exercise-card {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .exercise-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #555;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .question-row {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #fafafa;
+            border-radius: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.3s, border 0.3s;
+            border: 1px solid transparent;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+
+        .btn-check { background-color: var(--success-color); }
+        .btn-reset { background-color: var(--warning-color); }
+        .btn-solve { background-color: var(--info-color); }
+
+        /* Input Elements */
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        /* Feedback Classes */
+        .correct {
+            background-color: #dcedc8 !important;
+            border-color: var(--success-color) !important;
+        }
+        
+        .wrong {
+            background-color: #ffcdd2 !important;
+            border-color: var(--error-color) !important;
+        }
+
+        /* Drag and Drop Specifics */
+        .drop-zone {
+            display: inline-block;
+            min-width: 140px;
+            min-height: 35px;
+            border: 2px dashed #bbb;
+            background: #fff;
+            vertical-align: middle;
+            text-align: center;
+            margin: 0 5px;
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .draggable {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            cursor: move;
+            margin: 5px;
+            user-select: none;
+        }
+
+        .drag-container {
+            margin-top: 10px;
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background-color: #fcfcfc;
+            min-height: 60px;
+        }
+
+        /* Radio Group */
+        .radio-group label {
+            margin-right: 15px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 600px) {
+            .controls { flex-direction: column; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Russische Grammatik: Verneinung</h1>
+    
+    <div class="intro-box">
+        <h2>Akkusativ oder Genitiv nach Verneinung (НЕ, НЕТ, НИ)?</h2>
+        <p>Im Russischen kann das direkte Objekt nach einer Verneinung entweder im <strong>Genitiv</strong> oder im <strong>Akkusativ</strong> stehen. Hier sind die wichtigsten Regeln:</p>
+        
+        <div class="rule-block">
+            <span class="rule-title">1. Genitiv (Родительный падеж) wird verwendet:</span>
+            <ul>
+                <li>Nach dem Verb <strong>не иметь</strong> (nicht haben/besitzen). <br><em>Beispiel: не иметь права (kein Recht haben).</em></li>
+                <li>Bei Verben der Wahrnehmung/des Denkens (sehen, hören, verstehen, fühlen). <br><em>Beispiel: не чувствовать боли (keinen Schmerz fühlen).</em></li>
+                <li>Mit dem Wort <strong>ни</strong> (weder/noch, kein) oder zur Verstärkung (auch nicht, sogar). <br><em>Beispiel: не знаю ни слова (ich kenne kein Wort).</em></li>
+                <li>Bei abstrakten Begriffen oder wenn das Vorhandensein generell verneint wird (<strong>нет</strong>).</li>
+                <li>In festen Wendungen (z.B. не играть роли).</li>
+            </ul>
+        </div>
+
+        <div class="rule-block">
+            <span class="rule-title">2. Akkusativ (Винительный падеж) wird verwendet:</span>
+            <ul>
+                <li>Wenn es um konkrete, bestimmte Objekte geht (oft mit Pronomen wie <em>dieser/jener</em>). <br><em>Beispiel: Я не читал эту книгу (Ich habe dieses Buch nicht gelesen).</em></li>
+                <li>Bei Eigennamen. <br><em>Beispiel: Он не знает Анну (Er kennt Anna nicht).</em></li>
+                <li>Wenn die Verneinung nicht direkt auf dem Verb liegt (z.B. nicht sehr, nicht immer). <br><em>Beispiel: Я не очень люблю мороженое (Ich mag Eis nicht sehr).</em></li>
+                <li>Nach <strong>чуть не / едва не</strong> (fast/beinahe).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TEIL 1: DROPDOWN MENU EXERCISES (1-5)      -->
+    <!-- ========================================== -->
+    <div class="exercise-card" id="ex-section-1">
+        <div class="exercise-header">Aufgabe 1-5: Wählen Sie die richtige Endung (Sofortiges Feedback)</div>
+        <p>Wählen Sie die korrekte Form aus. Das Feld färbt sich sofort grün (richtig) oder rot (falsch).</p>
+
+        <div class="question-row">
+            1. Ты не имеешь (Recht) &nbsp;
+            <select data-correct="права" onchange="validateImmediateDropdown(this)">
+                <option value="">---</option>
+                <option value="право">право (Akk)</option>
+                <option value="права">права (Gen)</option>
+            </select>
+            &nbsp; это делать.
+        </div>
+
+        <div class="question-row">
+            2. Мы не видели (Anna) &nbsp;
+            <select data-correct="Анну" onchange="validateImmediateDropdown(this)">
+                <option value="">---</option>
+                <option value="Анну">Анну (Akk)</option>
+                <option value="Анны">Анны (Gen)</option>
+            </select>
+            &nbsp; уже давно.
+        </div>
+
+        <div class="question-row">
+            3. Он не обращает (Aufmerksamkeit) &nbsp;
+            <select data-correct="внимания" onchange="validateImmediateDropdown(this)">
+                <option value="">---</option>
+                <option value="внимание">внимание (Akk)</option>
+                <option value="внимания">внимания (Gen)</option>
+            </select>
+            &nbsp; на меня.
+        </div>
+
+        <div class="question-row">
+            4. Я не хочу писать (diese Übung) &nbsp;
+            <select data-correct="это упражнение" onchange="validateImmediateDropdown(this)">
+                <option value="">---</option>
+                <option value="это упражнение">это упражнение (Akk)</option>
+                <option value="этого упражнения">этого упражнения (Gen)</option>
+            </select>
+            .
+        </div>
+
+        <div class="question-row">
+            5. У меня нет (Zeit) &nbsp;
+            <select data-correct="времени" onchange="validateImmediateDropdown(this)">
+                <option value="">---</option>
+                <option value="время">время (Akk)</option>
+                <option value="времени">времени (Gen)</option>
+            </select>
+            .
+        </div>
+
+        <div class="controls">
+            <!-- Kein Überprüfen Button -->
+            <button class="btn-reset" onclick="resetDropdowns('ex-section-1')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDropdowns('ex-section-1')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TEIL 2: RADIO BUTTONS (6-10)               -->
+    <!-- ========================================== -->
+    <div class="exercise-card" id="ex-section-2">
+        <div class="exercise-header">Aufgabe 6-10: Wählen Sie die korrekte Aussage (Sofortiges Feedback)</div>
+        <p>Klicken Sie auf die richtige Antwort. Der Bereich färbt sich sofort.</p>
+        
+        <div class="question-row radio-group">
+            <span>6. Она чуть не разбила ... (Sie hat fast ... zerbrochen)</span><br>
+            <label><input type="radio" name="q6" value="wrong" onchange="validateImmediateRadio(this)"> вазы (Gen)</label>
+            <label><input type="radio" name="q6" value="correct" onchange="validateImmediateRadio(this)"> вазу (Akk)</label>
+        </div>
+
+        <div class="question-row radio-group">
+            <span>7. Он не понял ... (Er hat die Frage nicht verstanden)</span><br>
+            <label><input type="radio" name="q7" value="correct" onchange="validateImmediateRadio(this)"> вопроса (Gen)</label>
+            <label><input type="radio" name="q7" value="wrong" onchange="validateImmediateRadio(this)"> вопрос (Akk)</label>
+        </div>
+
+        <div class="question-row radio-group">
+            <span>8. Я не дам тебе ... (Ich gebe dir keinen einzigen Rubel)</span><br>
+            <label><input type="radio" name="q8" value="correct" onchange="validateImmediateRadio(this)"> и рубля (Gen)</label>
+            <label><input type="radio" name="q8" value="wrong" onchange="validateImmediateRadio(this)"> и рубль (Akk)</label>
+        </div>
+
+        <div class="question-row radio-group">
+            <span>9. Не морочь мне ... (Verdreh mir nicht den Kopf)</span><br>
+            <label><input type="radio" name="q9" value="wrong" onchange="validateImmediateRadio(this)"> головы (Gen)</label>
+            <label><input type="radio" name="q9" value="correct" onchange="validateImmediateRadio(this)"> голову (Akk)</label>
+        </div>
+
+        <div class="question-row radio-group">
+            <span>10. Мы не купим ... (Wir kaufen weder Haus noch Wohnung)</span><br>
+            <label><input type="radio" name="q10" value="correct" onchange="validateImmediateRadio(this)"> ни дома, ни квартиры (Gen)</label>
+            <label><input type="radio" name="q10" value="wrong" onchange="validateImmediateRadio(this)"> ни дом, ни квартиру (Akk)</label>
+        </div>
+
+        <div class="controls">
+            <!-- Kein Überprüfen Button -->
+            <button class="btn-reset" onclick="resetRadios('ex-section-2')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveRadios('ex-section-2')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TEIL 3: DRAG AND DROP (11-15)              -->
+    <!-- ========================================== -->
+    <div class="exercise-card" id="ex-section-3">
+        <div class="exercise-header">Aufgabe 11-15: Drag & Drop (Gemischt)</div>
+        <p>Ziehen Sie das richtige Wort in die Lücke. Klicken Sie am Ende auf "Überprüfen".</p>
+
+        <div class="question-row">
+            11. Я не пью <div class="drop-zone" data-accept="этот кофе"></div> по утрам.
+        </div>
+        <div class="question-row">
+            12. Это не имеет <div class="drop-zone" data-accept="смысла"></div>.
+        </div>
+        <div class="question-row">
+            13. Она не нашла <div class="drop-zone" data-accept="никакого объяснения"></div>.
+        </div>
+        <div class="question-row">
+            14. Я не знаю <div class="drop-zone" data-accept="Иру"></div>.
+        </div>
+        <div class="question-row">
+            15. Он не чувствует <div class="drop-zone" data-accept="холода"></div>.
+        </div>
+
+        <div class="drag-container" id="drag-source-3">
+            <!-- Items werden per JS gemischt -->
+            <div class="draggable" draggable="true">смысла</div>
+            <div class="draggable" draggable="true">этот кофе</div>
+            <div class="draggable" draggable="true">Иру</div>
+            <div class="draggable" draggable="true">холода</div>
+            <div class="draggable" draggable="true">никакого объяснения</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-check" onclick="checkDragDrop('ex-section-3')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDragDrop('ex-section-3', 'drag-source-3')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDragDrop('ex-section-3', 'drag-source-3')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TEIL 4: DRAG AND DROP (16-20)              -->
+    <!-- ========================================== -->
+    <div class="exercise-card" id="ex-section-4">
+        <div class="exercise-header">Aufgabe 16-20: Drag & Drop (Gemischt)</div>
+        <p>Ziehen Sie das richtige Wort in die Lücke.</p>
+
+        <div class="question-row">
+            16. Не делай <div class="drop-zone" data-accept="этого"></div>!
+        </div>
+        <div class="question-row">
+            17. Мы не всегда смотрим <div class="drop-zone" data-accept="фильмы"></div>.
+        </div>
+        <div class="question-row">
+            18. Здесь нет <div class="drop-zone" data-accept="места"></div>.
+        </div>
+        <div class="question-row">
+            19. Ты едва не сломал <div class="drop-zone" data-accept="стул"></div>.
+        </div>
+        <div class="question-row">
+            20. Она не сводит <div class="drop-zone" data-accept="глаз"></div> с ребёнка.
+        </div>
+
+        <div class="drag-container" id="drag-source-4">
+            <!-- Items werden per JS gemischt -->
+            <div class="draggable" draggable="true">фильмы</div>
+            <div class="draggable" draggable="true">этого</div>
+            <div class="draggable" draggable="true">глаз</div>
+            <div class="draggable" draggable="true">стул</div>
+            <div class="draggable" draggable="true">места</div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-check" onclick="checkDragDrop('ex-section-4')">Überprüfen</button>
+            <button class="btn-reset" onclick="resetDragDrop('ex-section-4', 'drag-source-4')">Zurücksetzen</button>
+            <button class="btn-solve" onclick="solveDragDrop('ex-section-4', 'drag-source-4')">Lösung anzeigen</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- Initialisierung (Mischen) ---
+    window.onload = function() {
+        shuffleChildren('drag-source-3');
+        shuffleChildren('drag-source-4');
+    };
+
+    function shuffleChildren(containerId) {
+        const container = document.getElementById(containerId);
+        for (let i = container.children.length; i >= 0; i--) {
+            container.appendChild(container.children[Math.random() * i | 0]);
+        }
+    }
+
+    // --- Logic for Immediate Feedback Dropdowns ---
+    function validateImmediateDropdown(select) {
+        select.classList.remove('correct', 'wrong');
+        if (select.value === "") return; // Nichts ausgewählt
+
+        if (select.value === select.getAttribute('data-correct')) {
+            select.classList.add('correct');
+        } else {
+            select.classList.add('wrong');
+        }
+    }
+
+    function resetDropdowns(sectionId) {
+        const section = document.getElementById(sectionId);
+        const selects = section.querySelectorAll('select');
+        selects.forEach(select => {
+            select.value = "";
+            select.classList.remove('correct', 'wrong');
+        });
+    }
+
+    function solveDropdowns(sectionId) {
+        const section = document.getElementById(sectionId);
+        const selects = section.querySelectorAll('select');
+        selects.forEach(select => {
+            select.value = select.getAttribute('data-correct');
+            select.classList.remove('wrong');
+            select.classList.add('correct');
+        });
+    }
+
+    // --- Logic for Immediate Feedback Radios ---
+    function validateImmediateRadio(input) {
+        const group = input.closest('.radio-group');
+        group.classList.remove('correct', 'wrong');
+        
+        if (input.value === 'correct') {
+            group.classList.add('correct');
+        } else {
+            group.classList.add('wrong');
+        }
+    }
+
+    function resetRadios(sectionId) {
+        const section = document.getElementById(sectionId);
+        const inputs = section.querySelectorAll('input');
+        const groups = section.querySelectorAll('.radio-group');
+        
+        inputs.forEach(input => input.checked = false);
+        groups.forEach(group => group.classList.remove('correct', 'wrong'));
+    }
+
+    function solveRadios(sectionId) {
+        const section = document.getElementById(sectionId);
+        const groups = section.querySelectorAll('.radio-group');
+        
+        groups.forEach(group => {
+            group.classList.remove('wrong');
+            group.classList.add('correct');
+            const correctInput = group.querySelector('input[value="correct"]');
+            if (correctInput) correctInput.checked = true;
+        });
+    }
+
+    // --- Logic for Drag and Drop ---
+    
+    // Global Drag Events
+    let draggedItem = null;
+
+    document.addEventListener('dragstart', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            draggedItem = e.target;
+            e.dataTransfer.setData('text/plain', e.target.textContent);
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.style.opacity = '0.5', 0);
+        }
+    });
+
+    document.addEventListener('dragend', function(e) {
+        if (e.target.classList.contains('draggable')) {
+            e.target.style.opacity = '1';
+            draggedItem = null;
+        }
+    });
+
+    document.addEventListener('dragover', function(e) {
+        if (e.target.classList.contains('drop-zone')) {
+            e.preventDefault(); 
+            e.dataTransfer.dropEffect = 'move';
+        }
+    });
+
+    document.addEventListener('drop', function(e) {
+        if (e.target.classList.contains('drop-zone')) {
+            e.preventDefault();
+            
+            // Sicherstellen, dass das Item in dieselbe Sektion gehört
+            const zoneSection = e.target.closest('.exercise-card');
+            const itemSection = draggedItem.closest('.exercise-card');
+            
+            if (zoneSection === itemSection) {
+                // Wenn bereits ein Kind vorhanden ist, zurück in den Container schieben
+                if (e.target.children.length > 0) {
+                    const existingChild = e.target.children[0];
+                    const sourceContainer = zoneSection.querySelector('.drag-container');
+                    sourceContainer.appendChild(existingChild);
+                }
+                e.target.appendChild(draggedItem);
+                e.target.classList.remove('correct', 'wrong');
+            }
+        }
+    });
+
+    // DnD Buttons
+    function checkDragDrop(sectionId) {
+        const section = document.getElementById(sectionId);
+        const zones = section.querySelectorAll('.drop-zone');
+
+        zones.forEach(zone => {
+            zone.classList.remove('correct', 'wrong');
+            if (zone.children.length > 0) {
+                const itemText = zone.children[0].innerText.trim();
+                const expected = zone.getAttribute('data-accept');
+                if (itemText === expected) {
+                    zone.classList.add('correct');
+                } else {
+                    zone.classList.add('wrong');
+                }
+            } else {
+                zone.classList.add('wrong');
+            }
+        });
+    }
+
+    function resetDragDrop(sectionId, sourceId) {
+        const section = document.getElementById(sectionId);
+        const source = document.getElementById(sourceId);
+        const zones = section.querySelectorAll('.drop-zone');
+        
+        // Items zurücksetzen
+        zones.forEach(zone => {
+            zone.classList.remove('correct', 'wrong');
+            while (zone.firstChild) {
+                source.appendChild(zone.firstChild);
+            }
+        });
+
+        // WICHTIG: Neu mischen beim Zurücksetzen
+        shuffleChildren(sourceId);
+    }
+
+    function solveDragDrop(sectionId, sourceId) {
+        const section = document.getElementById(sectionId);
+        const source = document.getElementById(sourceId);
+        const zones = section.querySelectorAll('.drop-zone');
+        // Alle Draggables sammeln
+        const draggables = Array.from(section.querySelectorAll('.draggable'));
+
+        // Erst alles "aufräumen"
+        zones.forEach(zone => {
+             while (zone.firstChild) {
+                source.appendChild(zone.firstChild);
+            }
+            zone.classList.remove('correct', 'wrong');
+        });
+
+        // Richtig zuordnen
+        zones.forEach(zone => {
+            const expectedText = zone.getAttribute('data-accept');
+            const match = draggables.find(d => d.innerText.trim() === expectedText);
+            if (match) {
+                zone.appendChild(match);
+                zone.classList.add('correct');
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
