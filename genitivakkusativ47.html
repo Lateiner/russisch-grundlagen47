@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Genitiv vs. Akkusativ (Dropdown)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;     /* Indigo */
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --success: #d4edda;     /* Hellgrün Hintergrund */
+            --success-border: #28a745; 
+            --error: #f8d7da;       /* Hellrot Hintergrund */
+            --error-border: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* --- Grid Layout für die Aufgaben --- */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr; /* Mobile: 1 Spalte */
+            gap: 15px;
+        }
+
+        @media (min-width: 700px) {
+            .grid-container {
+                grid-template-columns: 1fr 1fr; /* Tablet/Desktop: 2 Spalten */
+            }
+        }
+
+        /* --- Aufgabenkarte --- */
+        .task-card {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .task-number {
+            font-weight: bold;
+            color: var(--primary);
+            margin-right: 10px;
+            min-width: 25px;
+        }
+
+        .sentence-part {
+            white-space: nowrap;
+        }
+
+        /* --- Dropdown Styling --- */
+        select {
+            font-family: inherit;
+            font-size: 1rem;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            background-color: #fff;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            max-width: 100%;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* Feedback Klassen */
+        select.correct {
+            background-color: var(--success);
+            border-color: var(--success-border);
+            color: #155724;
+        }
+
+        select.wrong {
+            background-color: var(--error);
+            border-color: var(--error-border);
+            color: #721c24;
+        }
+
+        /* --- Erklärungstext (Hint) --- */
+        .hint-text {
+            display: block;
+            width: 100%;
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 5px;
+            margin-left: 35px; /* Einrücken unter den Text */
+            font-style: italic;
+        }
+
+        /* --- Globale Buttons --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        button:hover { opacity: 0.9; }
+        button:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Übung: Genitiv oder Akkusativ?</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Wählen Sie im Dropdown-Menü die richtige Form aus.</p>
+        <ul style="margin-top:5px; padding-left: 20px;">
+            <li>Das Feld wird sofort <strong style="color:var(--success-border)">grün</strong>, wenn die Antwort richtig ist.</li>
+            <li>Das Feld wird <strong style="color:var(--error-border)">rot</strong>, wenn die Antwort falsch ist.</li>
+        </ul>
+    </div>
+
+    <div id="quiz-container" class="grid-container">
+        <!-- Aufgaben werden per JavaScript generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="btn-reset" onclick="resetAll()">Alles zurücksetzen</button>
+        <button class="btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /* 
+       Datenstruktur für 20 Aufgaben:
+       pre: Satzanfang
+       correct: Die richtige Antwort
+       wrong: Die falsche Antwort (Distraktor)
+       post: Satzende
+       hint: Kurzer Hinweis zur Regel (wird unter dem Satz angezeigt)
+    */
+    const tasks = [
+        // --- GENITIV (1-10) ---
+        { 
+            pre: "Ты не имеешь", correct: "права", wrong: "право", post: ".", 
+            hint: "Ausdruck: не иметь (Genitiv)" 
+        },
+        { 
+            pre: "У нас нет", correct: "времени", wrong: "время", post: ".", 
+            hint: "Wort: нет + Genitiv" 
+        },
+        { 
+            pre: "Он не сказал ни", correct: "слова", wrong: "слово", post: ".", 
+            hint: "Verstärkung: ни + Genitiv" 
+        },
+        { 
+            pre: "Не делай", correct: "этого", wrong: "это", post: "!", 
+            hint: "Abstraktes Pronomen + Verneinung" 
+        },
+        { 
+            pre: "Она не нашла", correct: "объяснения", wrong: "объяснение", post: ".", 
+            hint: "Abstrakter Begriff + Verneinung" 
+        },
+        { 
+            pre: "Это не играет", correct: "роли", wrong: "роль", post: ".", 
+            hint: "Feste Wendung: не играть роли" 
+        },
+        { 
+            pre: "Не обращать", correct: "внимания", wrong: "внимание", post: ".", 
+            hint: "Feste Wendung: не обращать внимания" 
+        },
+        { 
+            pre: "Я не вижу", correct: "смысла", wrong: "смысл", post: ".", 
+            hint: "Wahrnehmung/Abstrakt: kein Sinn" 
+        },
+        { 
+            pre: "Здесь нет", correct: "места", wrong: "место", post: ".", 
+            hint: "Existenzverneinung: нет" 
+        },
+        { 
+            pre: "Он не чувствует", correct: "боли", wrong: "боль", post: ".", 
+            hint: "Wahrnehmung (fühlen) + Verneinung" 
+        },
+
+        // --- AKKUSATIV (11-20) ---
+        { 
+            pre: "Я не знаю", correct: "Анну", wrong: "Анны", post: ".", 
+            hint: "Konkrete Person (Name) -> Akkusativ" 
+        },
+        { 
+            pre: "Он не читал", correct: "эту книгу", wrong: "этой книги", post: ".", 
+            hint: "Konkretes Objekt mit 'diese' -> Akkusativ" 
+        },
+        { 
+            pre: "Она чуть не разбила", correct: "вазу", wrong: "вазы", post: ".", 
+            hint: "Ausdruck: чуть не (fast) -> Akkusativ" 
+        },
+        { 
+            pre: "Не морочь мне", correct: "голову", wrong: "головы", post: ".", 
+            hint: "Idiom: den Kopf verdrehen -> Akkusativ" 
+        },
+        { 
+            pre: "Я не пью", correct: "воду", wrong: "воды", post: " из крана.", 
+            hint: "Konkretes Objekt (bestimmtes Wasser)" 
+        },
+        { 
+            pre: "Мы не купили", correct: "машину", wrong: "машины", post: ".", 
+            hint: "Konkretes Objekt -> Akkusativ" 
+        },
+        { 
+            pre: "Ты едва не сломал", correct: "стул", wrong: "стула", post: ".", 
+            hint: "Ausdruck: едва не (beinahe) -> Akkusativ" 
+        },
+        { 
+            pre: "Я не очень люблю", correct: "зиму", wrong: "зимы", post: ".", 
+            hint: "Verneinung liegt nicht auf Verb (nicht sehr) -> Akkusativ" 
+        },
+        { 
+            pre: "Не забудь", correct: "сумку", wrong: "сумки", post: ".", 
+            hint: "Konkretes Objekt -> Akkusativ" 
+        },
+        { 
+            pre: "Вы не видели", correct: "маму", wrong: "мамы", post: "?", 
+            hint: "Konkrete Person -> Akkusativ" 
+        }
+    ];
+
+    const container = document.getElementById('quiz-container');
+
+    // Funktion zum Mischen eines Arrays (Fisher-Yates)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // Rendering der Aufgaben
+    function renderTasks() {
+        container.innerHTML = '';
+        
+        tasks.forEach((task, index) => {
+            // Optionen erstellen und mischen
+            let options = [
+                { text: task.correct, value: "correct" },
+                { text: task.wrong, value: "wrong" }
+            ];
+            shuffleArray(options);
+
+            // HTML Karte erstellen
+            const card = document.createElement('div');
+            card.className = 'task-card';
+
+            // Nummer
+            const num = document.createElement('span');
+            num.className = 'task-number';
+            num.innerText = (index + 1) + ".";
+
+            // Satzteil davor
+            const preText = document.createTextNode(task.pre + " ");
+
+            // Dropdown
+            const select = document.createElement('select');
+            select.id = `select-${index}`;
+            select.onchange = function() { validateSelect(this); };
+
+            // Default Option
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = "";
+            defaultOpt.text = "---";
+            select.appendChild(defaultOpt);
+
+            // Antwort Optionen einfügen
+            options.forEach(opt => {
+                const optionEl = document.createElement('option');
+                optionEl.value = opt.value;
+                optionEl.text = opt.text;
+                select.appendChild(optionEl);
+            });
+
+            // Satzteil danach
+            const postText = document.createTextNode(" " + task.post);
+
+            // Hinweis (Hint)
+            const hintEl = document.createElement('div');
+            hintEl.className = 'hint-text';
+            hintEl.innerText = task.hint;
+
+            // Zusammenbauen
+            card.appendChild(num);
+            card.appendChild(preText);
+            card.appendChild(select);
+            card.appendChild(postText);
+            card.appendChild(hintEl);
+            
+            container.appendChild(card);
+        });
+    }
+
+    // Validierungsfunktion (Sofortiges Feedback)
+    function validateSelect(selectElement) {
+        // Klassen zurücksetzen
+        selectElement.classList.remove('correct', 'wrong');
+
+        if (selectElement.value === "correct") {
+            selectElement.classList.add('correct');
+        } else if (selectElement.value === "wrong") {
+            selectElement.classList.add('wrong');
+        }
+    }
+
+    // Alles zurücksetzen
+    function resetAll() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.value = "";
+            select.classList.remove('correct', 'wrong');
+        });
+    }
+
+    // Lösungen anzeigen
+    function solveAll() {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            // Finde die Option mit value="correct" und setze sie
+            select.value = "correct";
+            // Trigger die Validierung für das visuelle Feedback
+            validateSelect(select);
+        });
+    }
+
+    // Start beim Laden
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
