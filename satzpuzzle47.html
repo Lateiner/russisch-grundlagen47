@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Satzpuzzle</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            /* Feedback */
+            --correct-bg: #dcedc8;
+            --correct-border: #4caf50;
+            --wrong-bg: #ffcdd2;
+            --wrong-border: #f44336;
+            --neutral-border: #ccc;
+            /* Chip Style */
+            --chip-bg: #e3f2fd;
+            --chip-text: #1565c0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* --- Grid für Aufgaben --- */
+        .puzzle-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 800px) {
+            .puzzle-grid {
+                grid-template-columns: 1fr 1fr; /* 2 Spalten auf großen Screens */
+            }
+        }
+
+        /* --- Karte --- */
+        .puzzle-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .puzzle-header {
+            font-size: 0.9rem;
+            color: #777;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .puzzle-hint {
+            font-size: 0.8rem;
+            font-style: italic;
+            color: var(--primary);
+        }
+
+        /* --- Bereiche für Wörter --- */
+        .sentence-area {
+            min-height: 50px;
+            border-bottom: 2px solid var(--neutral-border);
+            padding: 5px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            background-color: #fafafa;
+            border-radius: 4px 4px 0 0;
+            transition: all 0.3s;
+        }
+
+        .word-pool {
+            min-height: 50px;
+            padding: 10px 5px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* --- Wort-Chips --- */
+        .word-chip {
+            background-color: var(--chip-bg);
+            color: var(--chip-text);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+            transition: transform 0.1s, background-color 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .word-chip:hover {
+            background-color: #bbdefb;
+            transform: translateY(-1px);
+        }
+
+        .word-chip:active {
+            transform: translateY(1px);
+        }
+
+        /* Zustände der Karte (Feedback) */
+        .puzzle-card.correct .sentence-area {
+            border-bottom-color: var(--correct-border);
+            background-color: var(--correct-bg);
+        }
+        
+        .puzzle-card.wrong .sentence-area {
+            border-bottom-color: var(--wrong-border);
+            background-color: var(--wrong-bg);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .puzzle-card.correct .word-chip {
+            cursor: default; /* Nicht mehr klickbar wenn richtig */
+            background-color: #fff;
+            color: #2e7d32;
+            border-color: #2e7d32;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* --- Controls --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Satzpuzzle: Genitiv/Akkusativ</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Klicken Sie auf die Wörter unten, um sie in die richtige Reihenfolge zu bringen.</p>
+        <p>Achten Sie auf die bereits vorgegebenen Endungen! <br>
+           <em>Grüner Hintergrund = Satz ist korrekt. Roter Hintergrund = Reihenfolge ist falsch.</em>
+        </p>
+    </div>
+
+    <div id="puzzle-container" class="puzzle-grid">
+        <!-- Aufgaben werden hier generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="initPuzzles()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        sentence: Der korrekte Satz.
+        hint: Ein Hinweis zur Grammatikregel.
+    */
+    const puzzles = [
+        // Genitiv
+        { sentence: "Я не знаю этого человека.", hint: "Genitiv (Person)" },
+        { sentence: "У меня нет времени.", hint: "Genitiv (нет)" },
+        { sentence: "Здесь не было дождя.", hint: "Genitiv (nicht existieren)" },
+        { sentence: "Не делай этого!", hint: "Genitiv (Abstrakt)" },
+        { sentence: "Он не сказал ни слова.", hint: "Genitiv (ни...)" },
+        
+        // Akkusativ
+        { sentence: "Мы не видели эту машину.", hint: "Akkusativ (Konkret)" },
+        { sentence: "Он не читал книгу.", hint: "Akkusativ (Konkret)" },
+        { sentence: "Не морочь мне голову.", hint: "Akkusativ (Idiom)" },
+        { sentence: "Я не знаю Анну.", hint: "Akkusativ (Name)" },
+        { sentence: "Она чуть не разбила вазу.", hint: "Akkusativ (чуть не)" },
+        
+        // Mix
+        { sentence: "Это не имеет смысла.", hint: "Genitiv (не иметь)" },
+        { sentence: "Я не слышал ответа.", hint: "Genitiv (Wahrnehmung)" },
+        { sentence: "Ты едва не сломал стул.", hint: "Akkusativ (едва не)" },
+        { sentence: "Не обращать внимания.", hint: "Genitiv (Wendug)" },
+        { sentence: "Я не дам тебе и рубля.", hint: "Genitiv (Verstärkung)" }
+    ];
+
+    const container = document.getElementById('puzzle-container');
+
+    // Mischen-Algorithmus
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    // Puzzles initialisieren
+    function initPuzzles() {
+        container.innerHTML = '';
+
+        puzzles.forEach((task, index) => {
+            // Wörter splitten
+            // Wir entfernen Punkt/Ausrufezeichen für den Vergleich, hängen sie aber optisch an?
+            // Einfacher: Wir splitten beim Leerzeichen und behalten die Satzzeichen am Wort.
+            const correctWords = task.sentence.split(' ');
+            
+            // Kopie zum Mischen
+            let shuffledWords = [...correctWords];
+            shuffleArray(shuffledWords);
+
+            // HTML Struktur
+            const card = document.createElement('div');
+            card.className = 'puzzle-card';
+            card.id = `puzzle-${index}`;
+            card.dataset.correctSentence = task.sentence; // Speichern für Validierung
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'puzzle-header';
+            header.innerHTML = `<strong>${index + 1}.</strong> <span class="puzzle-hint">${task.hint}</span>`;
+            card.appendChild(header);
+
+            // Satz-Bereich (Ziel)
+            const sentenceArea = document.createElement('div');
+            sentenceArea.className = 'sentence-area';
+            card.appendChild(sentenceArea);
+
+            // Wort-Pool (Quelle)
+            const wordPool = document.createElement('div');
+            wordPool.className = 'word-pool';
+            
+            shuffledWords.forEach(word => {
+                const chip = createChip(word, sentenceArea, wordPool, card);
+                wordPool.appendChild(chip);
+            });
+            card.appendChild(wordPool);
+
+            container.appendChild(card);
+        });
+    }
+
+    // Chip erstellen & Logik
+    function createChip(text, targetArea, sourceArea, card) {
+        const chip = document.createElement('span');
+        chip.className = 'word-chip';
+        chip.innerText = text;
+
+        chip.onclick = function() {
+            // Wenn der Satz schon richtig ist, nichts tun
+            if (card.classList.contains('correct')) return;
+
+            // Logik: Wo bin ich?
+            if (this.parentElement === sourceArea) {
+                // Bewege zu Target
+                targetArea.appendChild(this);
+            } else {
+                // Bewege zurück zu Source
+                sourceArea.appendChild(this);
+                // Status "Falsch" entfernen, wenn man korrigiert
+                card.classList.remove('wrong');
+            }
+
+            // Prüfung auslösen
+            checkStatus(card, targetArea, sourceArea);
+        };
+
+        return chip;
+    }
+
+    function checkStatus(card, targetArea, sourceArea) {
+        // Erst prüfen, ob alle Wörter benutzt wurden
+        if (sourceArea.children.length === 0) {
+            // Satz zusammensetzen
+            const currentSentence = Array.from(targetArea.children)
+                                         .map(chip => chip.innerText)
+                                         .join(' ');
+            
+            const correctSentence = card.dataset.correctSentence;
+
+            if (currentSentence === correctSentence) {
+                card.classList.add('correct');
+                card.classList.remove('wrong');
+            } else {
+                card.classList.add('wrong');
+                // Optional: Nach kurzer Zeit resetten? Nein, User muss selbst korrigieren.
+            }
+        } else {
+            // Satz ist noch nicht vollständig
+            card.classList.remove('correct');
+            card.classList.remove('wrong');
+        }
+    }
+
+    function solveAll() {
+        // Für jede Karte
+        const cards = document.querySelectorAll('.puzzle-card');
+        
+        cards.forEach(card => {
+            const correctSentence = card.dataset.correctSentence;
+            const words = correctSentence.split(' ');
+            
+            const targetArea = card.querySelector('.sentence-area');
+            const sourceArea = card.querySelector('.word-pool');
+
+            // Alles zurücksetzen (visuell)
+            targetArea.innerHTML = '';
+            sourceArea.innerHTML = '';
+            card.classList.remove('wrong');
+            
+            // Chips neu erstellen in richtiger Reihenfolge direkt im Ziel
+            words.forEach(word => {
+                const chip = createChip(word, targetArea, sourceArea, card);
+                // Um Interaktion zu verhindern, da gelöst:
+                // Wir setzen die Klasse manuell
+                targetArea.appendChild(chip);
+            });
+            
+            // Als gelöst markieren
+            card.classList.add('correct');
+        });
+    }
+
+    // Start
+    window.onload = initPuzzles;
+
+</script>
+
+</body>
+</html>
