@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Transformation (Positiv zu Negativ)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --secondary: #e8eaf6;
+            --bg-color: #f5f7fa;
+            --text-color: #333;
+            --pos-color: #2e7d32; /* Grün für Positiv */
+            --neg-color: #c62828; /* Rot für Negativ-Kontext */
+            
+            /* Feedback */
+            --success-bg: #dcedc8;
+            --success-border: #4caf50;
+            --wrong-bg: #ffcdd2;
+            --wrong-border: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* --- Grid Layout --- */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* --- Transformations-Karte --- */
+        .trans-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-number {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.9rem;
+            color: #999;
+            font-weight: bold;
+        }
+
+        /* --- Bereiche: Positiv & Negativ --- */
+        .sentence-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            width: 80px;
+            flex-shrink: 0;
+        }
+
+        .label.pos { color: var(--pos-color); }
+        .label.neg { color: var(--neg-color); }
+
+        .content {
+            font-size: 1.1rem;
+            flex-grow: 1;
+            padding: 8px 12px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            border-left: 3px solid transparent;
+        }
+
+        .content.pos { border-left-color: var(--pos-color); }
+        .content.neg { 
+            border-left-color: var(--neg-color); 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .arrow-divider {
+            text-align: center;
+            color: #aaa;
+            margin: -5px 0 10px 0;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        /* --- Interaktive Buttons --- */
+        .options-wrapper {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        @media (min-width: 600px) {
+            .options-wrapper { width: auto; }
+        }
+
+        .choice-btn {
+            flex: 1;
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .choice-btn:hover {
+            background-color: #f0f0f0;
+            border-color: #bbb;
+        }
+
+        /* Feedback States */
+        .choice-btn.correct {
+            background-color: var(--success-bg);
+            border-color: var(--success-border);
+            color: #2e7d32;
+            cursor: default;
+        }
+
+        .choice-btn.wrong {
+            background-color: var(--wrong-bg);
+            border-color: var(--wrong-border);
+            color: #c62828;
+            opacity: 0.6;
+        }
+
+        /* Deaktiviert (für den anderen Button) */
+        .choice-btn.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            background-color: #eee;
+        }
+
+        /* Hinweis */
+        .hint {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 5px;
+            margin-left: 92px; /* Align with content */
+            font-style: italic;
+        }
+        
+        @media (max-width: 600px) {
+            .hint { margin-left: 0; }
+            .label { width: 100%; margin-bottom: 5px; }
+            .sentence-row { flex-direction: column; align-items: flex-start; }
+            .content { width: 100%; box-sizing: border-box; }
+        }
+
+        /* --- Controls --- */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Transformation: Positiv &rarr; Negativ</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Formen Sie die Sätze um. Wählen Sie die richtige Endung für den verneinten Satz.</p>
+        <p><em>Tipp: Achten Sie darauf, ob es sich um abstrakte Begriffe/Existenz (Genitiv) oder konkrete Objekte/Namen (Akkusativ) handelt.</em></p>
+    </div>
+
+    <div id="task-container" class="task-list">
+        <!-- Aufgaben werden hier generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="renderTasks()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        pos: Satz im Positiv
+        negStart: Anfang des Negativ-Satzes
+        correct: Die richtige Endung/Wort
+        wrong: Die falsche Option
+        hint: Kontext-Hinweis
+    */
+    const tasks = [
+        // Genitiv (Existenz, Abstrakt, ne imet)
+        { 
+            pos: "У меня есть время.", 
+            negStart: "У меня нет", 
+            correct: "времени", wrong: "время", 
+            hint: "Verneinung der Existenz (нет)" 
+        },
+        { 
+            pos: "Я имею право.", 
+            negStart: "Я не имею", 
+            correct: "права", wrong: "право", 
+            hint: "Ausdruck: не иметь" 
+        },
+        { 
+            pos: "Здесь был дождь.", 
+            negStart: "Здесь не было", 
+            correct: "дождя", wrong: "дождь", 
+            hint: "Existenzverneinung" 
+        },
+        { 
+            pos: "Это имеет смысл.", 
+            negStart: "Это не имеет", 
+            correct: "смысла", wrong: "смысл", 
+            hint: "Abstrakter Begriff" 
+        },
+        { 
+            pos: "Я слышу ответ.", 
+            negStart: "Я не слышу", 
+            correct: "ответа", wrong: "ответ", 
+            hint: "Wahrnehmung (abstrakt/nicht vorhanden)" 
+        },
+        { 
+            pos: "Он сказал слово.", 
+            negStart: "Он не сказал ни", 
+            correct: "слова", wrong: "слово", 
+            hint: "Verstärkung durch 'ни'" 
+        },
+        { 
+            pos: "Делай это!", 
+            negStart: "Не делай", 
+            correct: "этого", wrong: "это", 
+            hint: "Abstraktes Pronomen" 
+        },
+        { 
+            pos: "Это играет роль.", 
+            negStart: "Это не играет", 
+            correct: "роли", wrong: "роль", 
+            hint: "Feste Wendung" 
+        },
+        { 
+            pos: "Я чувствую боль.", 
+            negStart: "Я не чувствую", 
+            correct: "боли", wrong: "боль", 
+            hint: "Gefühl/Wahrnehmung" 
+        },
+        { 
+            pos: "Он обращает внимание.", 
+            negStart: "Он не обращает", 
+            correct: "внимания", wrong: "внимание", 
+            hint: "Feste Wendung" 
+        },
+
+        // Akkusativ (Konkret, Namen, Idiome, Spezifisch)
+        { 
+            pos: "Я вижу Анну.", 
+            negStart: "Я не вижу", 
+            correct: "Анну", wrong: "Анны", 
+            hint: "Name (Konkrete Person)" 
+        },
+        { 
+            pos: "Я читаю эту книгу.", 
+            negStart: "Я не читаю", 
+            correct: "эту книгу", wrong: "этой книги", 
+            hint: "Konkretes Objekt (diese)" 
+        },
+        { 
+            pos: "Мы купили машину.", 
+            negStart: "Мы не купили", 
+            correct: "машину", wrong: "машины", 
+            hint: "Konkretes Objekt (Akkusativ)" 
+        },
+        { 
+            pos: "Я знаю Игоря.", 
+            negStart: "Я не знаю", 
+            correct: "Игоря", wrong: "Игорь", 
+            hint: "Name (Belebtes Maskulinum im Akk)" 
+        },
+        { 
+            pos: "Я разбил вазу.", 
+            negStart: "Я чуть не разбил", 
+            correct: "вазу", wrong: "вазы", 
+            hint: "чуть не (fast) -> Akkusativ" 
+        },
+        { 
+            pos: "У нас есть места (konkret).", 
+            negStart: "У нас нет", 
+            correct: "мест", wrong: "места", 
+            hint: "Genitiv Plural bei 'нет'" 
+        },
+        { 
+            pos: "Ты сломал стул.", 
+            negStart: "Ты едва не сломал", 
+            correct: "стул", wrong: "стула", 
+            hint: "едва не (beinahe) -> Akkusativ" 
+        },
+        { 
+            pos: "Я люблю зиму.", 
+            negStart: "Я не очень люблю", 
+            correct: "зиму", wrong: "зимы", 
+            hint: "Verneinung liegt auf 'очень', nicht Verb" 
+        },
+        { 
+            pos: "Забудь сумку!", 
+            negStart: "Не забудь", 
+            correct: "сумку", wrong: "сумки", 
+            hint: "Konkretes Objekt" 
+        },
+        { 
+            pos: "Я вижу дом (konkret).", 
+            negStart: "Я не вижу (этот)", 
+            correct: "дом", wrong: "дома", 
+            hint: "Konkret: Ich sehe das Haus dort nicht" 
+        }
+    ];
+
+    const container = document.getElementById('task-container');
+
+    // Mischen-Funktion für die Buttons
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function renderTasks() {
+        container.innerHTML = '';
+
+        tasks.forEach((task, index) => {
+            const card = document.createElement('div');
+            card.className = 'trans-card';
+
+            const num = document.createElement('div');
+            num.className = 'task-number';
+            num.innerText = '#' + (index + 1);
+            card.appendChild(num);
+
+            // Zeile 1: Positiv
+            const rowPos = document.createElement('div');
+            rowPos.className = 'sentence-row';
+            rowPos.innerHTML = `
+                <div class="label pos">Positiv</div>
+                <div class="content pos">${task.pos}</div>
+            `;
+            card.appendChild(rowPos);
+
+            // Pfeil
+            const arrow = document.createElement('div');
+            arrow.className = 'arrow-divider';
+            arrow.innerHTML = '&darr;';
+            card.appendChild(arrow);
+
+            // Zeile 2: Negativ
+            const rowNeg = document.createElement('div');
+            rowNeg.className = 'sentence-row';
+            
+            // Content Wrapper für Negativ
+            const contentNeg = document.createElement('div');
+            contentNeg.className = 'content neg';
+            contentNeg.innerHTML = `<span>${task.negStart}</span>`;
+
+            // Buttons erstellen
+            const btnWrapper = document.createElement('div');
+            btnWrapper.className = 'options-wrapper';
+
+            // Optionen vorbereiten
+            let opts = [
+                { txt: task.correct, isCorrect: true },
+                { txt: task.wrong, isCorrect: false }
+            ];
+            opts = shuffle(opts);
+
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerText = opt.txt;
+                
+                // Event Listener
+                btn.onclick = function() {
+                    handleChoice(this, opt.isCorrect, btnWrapper);
+                };
+                
+                btnWrapper.appendChild(btn);
+            });
+
+            contentNeg.appendChild(btnWrapper);
+            
+            rowNeg.innerHTML = `<div class="label neg">Negativ</div>`;
+            rowNeg.appendChild(contentNeg);
+            card.appendChild(rowNeg);
+
+            // Hinweis
+            const hintDiv = document.createElement('div');
+            hintDiv.className = 'hint';
+            hintDiv.innerText = "Hinweis: " + task.hint;
+            card.appendChild(hintDiv);
+
+            container.appendChild(card);
+        });
+    }
+
+    function handleChoice(btn, isCorrect, wrapper) {
+        const btns = wrapper.querySelectorAll('.choice-btn');
+        
+        // Reset styles first within this group
+        btns.forEach(b => {
+            b.classList.remove('correct', 'wrong', 'disabled');
+        });
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            // Die anderen deaktivieren, um den Status zu "fixieren"
+            btns.forEach(b => {
+                if (b !== btn) b.classList.add('disabled');
+            });
+        } else {
+            btn.classList.add('wrong');
+            // Benutzer darf noch einmal wählen (kein Disable der anderen)
+        }
+    }
+
+    function solveAll() {
+        // Alle Wrapper finden
+        const wrappers = document.querySelectorAll('.options-wrapper');
+        
+        wrappers.forEach((wrapper, index) => {
+            const correctText = tasks[index].correct;
+            const btns = wrapper.querySelectorAll('.choice-btn');
+            
+            btns.forEach(b => {
+                b.classList.remove('wrong', 'disabled');
+                if (b.innerText === correctText) {
+                    b.classList.add('correct');
+                } else {
+                    b.classList.add('disabled');
+                }
+            });
+        });
+    }
+
+    // Init
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
