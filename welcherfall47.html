@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Genitiv oder Akkusativ erkennen</title>
+    <style>
+        :root {
+            --primary: #3f51b5;     /* Indigo */
+            --accent: #ff4081;      /* Pink */
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-main: #333;
+            --success: #4caf50;     /* Green */
+            --error: #f44336;       /* Red */
+            --btn-text: #fff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 10px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #e8eaf6;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        /* --- Grid für die Aufgaben --- */
+        .task-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Default: 1 Spalte (Mobile) */
+            gap: 15px;
+        }
+
+        @media (min-width: 600px) {
+            .task-grid {
+                grid-template-columns: 1fr 1fr; /* Tablet/Desktop: 2 Spalten */
+            }
+        }
+
+        /* --- Einzelne Karte --- */
+        .task-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .task-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+
+        .sentence {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        /* --- Buttons --- */
+        .choice-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .choice-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            background-color: #f9f9f9;
+            color: #555;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            /* No text selection */
+            user-select: none; 
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .choice-btn:hover {
+            background-color: #eee;
+        }
+
+        /* States */
+        .choice-btn.correct {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+        }
+
+        .choice-btn.wrong {
+            background-color: var(--error);
+            color: white;
+            border-color: var(--error);
+            opacity: 0.6;
+        }
+
+        .choice-btn.inactive {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* --- Globale Kontrollen --- */
+        .global-controls {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+
+        .ctrl-btn:active { transform: scale(0.98); }
+
+        .btn-reset { background-color: #ff9800; color: white; }
+        .btn-solve { background-color: #2196f3; color: white; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Genitiv oder Akkusativ?</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Lesen Sie die Sätze. Entscheiden Sie, ob das markierte Wort im <strong>Genitiv</strong> oder <strong>Akkusativ</strong> steht. Tippen Sie auf den entsprechenden Button.</p>
+        <p><em>Erinnerung:</em> Abstrakte Begriffe, Verneinung der Existenz ("net") oder verstärkte Verneinung ("ni") verlangen meist den <strong>Genitiv</strong>. Konkrete Objekte, Namen oder abgeschwächte Verneinung stehen oft im <strong>Akkusativ</strong>.</p>
+    </div>
+
+    <!-- Container für die 20 Aufgaben -->
+    <div class="task-grid" id="task-container">
+        <!-- Aufgaben werden per JavaScript generiert, um den Code sauber zu halten -->
+    </div>
+
+    <div class="global-controls">
+        <button class="ctrl-btn btn-reset" onclick="resetAll()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="showAllSolutions()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    // Datenstruktur für die 20 Aufgaben
+    // type: 'gen' oder 'akk'
+    const tasks = [
+        { text: "Ты не имеешь <span class='highlight'>права</span>.", type: "gen" },
+        { text: "Я не вижу <span class='highlight'>эту машину</span>.", type: "akk" },
+        { text: "У нас нет <span class='highlight'>времени</span>.", type: "gen" },
+        { text: "Мы не знаем <span class='highlight'>Игоря</span>.", type: "akk" },
+        { text: "Это не имеет <span class='highlight'>смысла</span>.", type: "gen" },
+        { text: "Не морочь мне <span class='highlight'>голову</span>.", type: "akk" },
+        { text: "Здесь не было <span class='highlight'>дождя</span>.", type: "gen" },
+        { text: "Она чуть не разбила <span class='highlight'>вазу</span>.", type: "akk" },
+        { text: "Я не слышу <span class='highlight'>ответа</span>.", type: "gen" },
+        { text: "Не пей <span class='highlight'>воду</span> из крана.", type: "akk" },
+        { text: "Он не сказал ни <span class='highlight'>слова</span>.", type: "gen" },
+        { text: "Не обращать <span class='highlight'>внимания</span>.", type: "gen" },
+        { text: "Я не люблю <span class='highlight'>жару</span>.", type: "akk" }, // Konkret/Zustand gefühlt
+        { text: "Это не играет <span class='highlight'>роли</span>.", type: "gen" },
+        { text: "Не делай <span class='highlight'>этого</span>.", type: "gen" },
+        { text: "Ты не выучил <span class='highlight'>урок</span>.", type: "akk" },
+        { text: "Я не нашел <span class='highlight'>дороги</span>.", type: "gen" },
+        { text: "Не обижай <span class='highlight'>сестру</span>.", type: "akk" },
+        { text: "Это не вызывает <span class='highlight'>сомнения</span>.", type: "gen" },
+        { text: "Я не читал <span class='highlight'>эту книгу</span>.", type: "akk" }
+    ];
+
+    const container = document.getElementById('task-container');
+
+    // Funktion zum Rendern der Aufgaben
+    function renderTasks() {
+        container.innerHTML = '';
+        tasks.forEach((task, index) => {
+            const card = document.createElement('div');
+            card.className = 'task-card';
+            card.id = `task-${index}`;
+
+            const sentence = document.createElement('div');
+            sentence.className = 'sentence';
+            sentence.innerHTML = `${index + 1}. ${task.text}`;
+
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'choice-container';
+
+            // Genitiv Button
+            const btnGen = document.createElement('button');
+            btnGen.className = 'choice-btn';
+            btnGen.innerText = 'Genitiv';
+            btnGen.onclick = () => checkAnswer(index, 'gen', btnGen, btnAkk);
+
+            // Akkusativ Button
+            const btnAkk = document.createElement('button');
+            btnAkk.className = 'choice-btn';
+            btnAkk.innerText = 'Akkusativ';
+            btnAkk.onclick = () => checkAnswer(index, 'akk', btnAkk, btnGen);
+
+            btnContainer.appendChild(btnGen);
+            btnContainer.appendChild(btnAkk);
+
+            card.appendChild(sentence);
+            card.appendChild(btnContainer);
+            container.appendChild(card);
+        });
+    }
+
+    // Überprüfungslogik (Sofortiges Feedback)
+    function checkAnswer(index, selectedType, clickedBtn, otherBtn) {
+        // Verhindern, dass man nochmal klickt, wenn schon gelöst
+        if (clickedBtn.classList.contains('inactive') || otherBtn.classList.contains('inactive')) return;
+
+        const correctType = tasks[index].type;
+
+        if (selectedType === correctType) {
+            // Richtig
+            clickedBtn.classList.add('correct');
+            // Anderen Button deaktivieren
+            otherBtn.classList.add('inactive');
+            clickedBtn.classList.add('inactive'); // Auch den geklickten einfrieren, damit Farbe bleibt
+        } else {
+            // Falsch
+            clickedBtn.classList.add('wrong');
+            // Automatisch den richtigen anzeigen? 
+            // Hier lassen wir den falschen rot werden, der Nutzer kann dann den anderen klicken.
+            // Oder wir zeigen die Lösung sofort an:
+            setTimeout(() => {
+                otherBtn.classList.add('correct');
+                clickedBtn.classList.add('inactive');
+                otherBtn.classList.add('inactive');
+            }, 300); // Kurze Verzögerung
+        }
+    }
+
+    // Alles zurücksetzen
+    function resetAll() {
+        const buttons = document.querySelectorAll('.choice-btn');
+        buttons.forEach(btn => {
+            btn.classList.remove('correct', 'wrong', 'inactive');
+        });
+    }
+
+    // Lösungen anzeigen
+    function showAllSolutions() {
+        // Erst resetten, damit keine Mischfarben entstehen
+        resetAll();
+
+        tasks.forEach((task, index) => {
+            const card = document.getElementById(`task-${index}`);
+            const buttons = card.querySelectorAll('.choice-btn');
+            const btnGen = buttons[0];
+            const btnAkk = buttons[1];
+
+            if (task.type === 'gen') {
+                btnGen.classList.add('correct');
+            } else {
+                btnAkk.classList.add('correct');
+            }
+            
+            // Interaktion sperren
+            btnGen.classList.add('inactive');
+            btnAkk.classList.add('inactive');
+        });
+    }
+
+    // Initialisieren
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
