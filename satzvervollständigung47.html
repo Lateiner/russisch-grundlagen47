@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Satzvervollständigung</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            
+            /* Feedback */
+            --correct-bg: #4caf50;
+            --correct-text: #fff;
+            --wrong-bg: #f44336;
+            --wrong-text: #fff;
+            
+            /* UI Elements */
+            --gap-color: #3f51b5;
+            --base-word-bg: #eceff1;
+            --base-word-text: #455a64;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .intro {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* --- Grid Layout --- */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* --- Aufgabenkarte --- */
+        .completion-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+            padding: 25px;
+            transition: transform 0.2s;
+        }
+
+        /* Der Satz mit der Lücke */
+        .sentence-display {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+            line-height: 1.8;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 100px;
+            border-bottom: 2px solid var(--gap-color);
+            color: var(--gap-color);
+            text-align: center;
+            padding: 0 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .gap.filled {
+            border-bottom-color: var(--correct-bg);
+            color: #2e7d32;
+        }
+
+        /* Das Basiswort (Wörterbuchform) */
+        .base-word-badge {
+            display: inline-block;
+            background-color: var(--base-word-bg);
+            color: var(--base-word-text);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            border: 1px solid #cfd8dc;
+            font-style: italic;
+        }
+
+        /* --- Optionen (Buttons) --- */
+        .options-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .option-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 12px;
+            background-color: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            border-color: #bbb;
+            background-color: #fafafa;
+            transform: translateY(-2px);
+        }
+
+        /* Feedback Classes */
+        .option-btn.correct {
+            background-color: var(--correct-bg);
+            border-color: var(--correct-bg);
+            color: var(--correct-text);
+            cursor: default;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-bg);
+            border-color: var(--wrong-bg);
+            color: var(--wrong-text);
+            animation: shake 0.4s;
+        }
+        
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+            background-color: #eee;
+            border-color: #eee;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Erklärung */
+        .explanation {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #78909c;
+            display: none; /* Erst nach Lösung anzeigen */
+            padding-top: 10px;
+            border-top: 1px dashed #eee;
+        }
+
+        .explanation.visible {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            padding-bottom: 20px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Satzvervollständigung</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Vervollständigen Sie den Satz.</p>
+        <p>Das gesuchte Wort steht in der Grundform (Nominativ) über den Tasten. Wählen Sie die grammatikalisch richtige Form (Genitiv oder Akkusativ) aus.</p>
+    </div>
+
+    <div id="task-container" class="task-list">
+        <!-- Aufgaben werden generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="initTasks()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        start: Satzanfang
+        base: Grundform des gesuchten Wortes (für den Badge)
+        options: Array mit Antworten {text: "...", correct: true/false}
+        hint: Erklärung der Regel
+    */
+    const tasks = [
+        {
+            start: "Я никогда не ем",
+            base: "мясо (Fleisch)",
+            options: [
+                { text: "мясо", correct: false },
+                { text: "мяса", correct: true },
+                { text: "мясу", correct: false }
+            ],
+            hint: "Verneinung + Lebensmittel/Stoffnamen -> Genitiv"
+        },
+        {
+            start: "Мы не видели",
+            base: "этот фильм (dieser Film)",
+            options: [
+                { text: "этот фильм", correct: false },
+                { text: "этого фильма", correct: false }, // Genitiv bei 'sehen' oft möglich, aber bei konkreten Objekten Akkusativ bevorzugt. Hier Eindeutigkeit schaffen:
+                { text: "этот фильм", correct: false } 
+                // Korrektur: "sehen" bei Negation kann beides sein. Um Eindeutigkeit zu schaffen, nutzen wir ein Beispiel, das klar ist.
+                // Nehmen wir "Я не знаю..." (Person) -> Akkusativ.
+            ],
+            // Ersetze Aufgabe 2 dynamisch im Code unten oder hier korrigieren:
+            // Neue Aufgabe 2:
+            start: "Я не знаю",
+            base: "Борис (Boris)",
+            options: [
+                { text: "Борис", correct: false },
+                { text: "Бориса", correct: true }, // Akk = Gen bei belebt
+                { text: "Борису", correct: false }
+            ],
+            hint: "Belebte Person (Name) im Akkusativ (= Genitiv Form)"
+        },
+        {
+            start: "У меня нет",
+            base: "время (Zeit)",
+            options: [
+                { text: "время", correct: false },
+                { text: "временем", correct: false },
+                { text: "времени", correct: true }
+            ],
+            hint: "Ausdruck 'нет' verlangt immer den Genitiv."
+        },
+        {
+            start: "Я не слышал",
+            base: "вопрос (Frage)",
+            options: [
+                { text: "вопрос", correct: false },
+                { text: "вопроса", correct: true },
+                { text: "вопросу", correct: false }
+            ],
+            hint: "Verneinte Wahrnehmung (hören) -> Genitiv"
+        },
+        {
+            start: "Не морочь мне",
+            base: "голова (Kopf)",
+            options: [
+                { text: "голову", correct: true },
+                { text: "головы", correct: false },
+                { text: "голове", correct: false }
+            ],
+            hint: "Feste Redewendung (Idiom) -> Akkusativ"
+        },
+        {
+            start: "Он не купил",
+            base: "молоко (Milch)",
+            options: [
+                { text: "молоко", correct: false },
+                { text: "молока", correct: true },
+                { text: "молоку", correct: false }
+            ],
+            hint: "Lebensmittel/Mengen bei Verneinung -> Genitiv"
+        },
+        {
+            start: "Я не вижу",
+            base: "смысл (Sinn)",
+            options: [
+                { text: "смысл", correct: false },
+                { text: "смысле", correct: false },
+                { text: "смысла", correct: true }
+            ],
+            hint: "Abstrakter Begriff bei Verneinung -> Genitiv"
+        },
+        {
+            start: "Ты едва не сломал",
+            base: "стул (Stuhl)",
+            options: [
+                { text: "стула", correct: false },
+                { text: "стул", correct: true },
+                { text: "стулом", correct: false }
+            ],
+            hint: "Nach 'едва не' (beinahe) -> Akkusativ"
+        },
+        {
+            start: "Мы не нашли",
+            base: "дорога (Weg/Straße)",
+            options: [
+                { text: "дорогу", correct: false }, // Hier Kontext: "nicht gefunden" -> Abstrakt/Nicht vorhanden? Oft Genitiv.
+                { text: "дороги", correct: true },
+                { text: "дороге", correct: false }
+            ],
+            hint: "Etwas nicht finden (Existenz) -> Genitiv"
+        },
+        {
+            start: "Не забудь",
+            base: "сумка (Tasche)",
+            options: [
+                { text: "сумку", correct: true },
+                { text: "сумки", correct: false },
+                { text: "сумке", correct: false }
+            ],
+            hint: "Konkretes Objekt (Imperativ) -> Akkusativ"
+        }
+    ];
+
+    const container = document.getElementById('task-container');
+
+    // Shuffle Funktion
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initTasks() {
+        container.innerHTML = '';
+
+        tasks.forEach((task, index) => {
+            const card = document.createElement('div');
+            card.className = 'completion-card';
+            card.id = `card-${index}`;
+
+            // 1. Badge (Basiswort)
+            const badge = document.createElement('div');
+            badge.className = 'base-word-badge';
+            badge.innerText = "Grundform: " + task.base;
+            card.appendChild(badge);
+
+            // 2. Satz mit Lücke
+            const sentenceDiv = document.createElement('div');
+            sentenceDiv.className = 'sentence-display';
+            sentenceDiv.innerHTML = `${task.start} <span class="gap" id="gap-${index}">__________</span>.`;
+            card.appendChild(sentenceDiv);
+
+            // 3. Optionen
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options-container';
+            
+            // Kopie mischen
+            let opts = [...task.options];
+            opts = shuffle(opts);
+
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = function() {
+                    checkAnswer(index, opt.text, opt.correct, this, optionsDiv);
+                };
+                optionsDiv.appendChild(btn);
+            });
+            card.appendChild(optionsDiv);
+
+            // 4. Erklärung (versteckt)
+            const explDiv = document.createElement('div');
+            explDiv.className = 'explanation';
+            explDiv.id = `expl-${index}`;
+            explDiv.innerHTML = `<strong>Richtig!</strong> ${task.hint}`;
+            card.appendChild(explDiv);
+
+            container.appendChild(card);
+        });
+    }
+
+    function checkAnswer(index, text, isCorrect, btn, container) {
+        const gap = document.getElementById(`gap-${index}`);
+        const expl = document.getElementById(`expl-${index}`);
+        const allBtns = container.querySelectorAll('.option-btn');
+
+        // Reset wrong states
+        allBtns.forEach(b => b.classList.remove('wrong'));
+
+        if (isCorrect) {
+            // Lücke füllen
+            gap.innerText = text;
+            gap.classList.add('filled');
+            
+            // Button grün
+            btn.classList.add('correct');
+            
+            // Erklärung zeigen
+            expl.classList.add('visible');
+
+            // Interaktion stoppen
+            allBtns.forEach(b => b.classList.add('disabled'));
+        } else {
+            // Button rot wackeln
+            btn.classList.add('wrong');
+        }
+    }
+
+    function solveAll() {
+        tasks.forEach((task, index) => {
+            const gap = document.getElementById(`gap-${index}`);
+            const expl = document.getElementById(`expl-${index}`);
+            const card = document.getElementById(`card-${index}`);
+            const buttons = card.querySelectorAll('.option-btn');
+
+            // Finde richtige Antwort im Daten-Array
+            const correctOpt = task.options.find(o => o.correct);
+
+            // Lücke füllen
+            gap.innerText = correctOpt.text;
+            gap.classList.add('filled');
+            expl.classList.add('visible');
+
+            // Buttons updaten
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                btn.classList.add('disabled');
+                if (btn.innerText === correctOpt.text) {
+                    btn.classList.add('correct');
+                }
+            });
+        });
+    }
+
+    // Start
+    window.onload = initTasks;
+
+</script>
+
+</body>
+</html>
