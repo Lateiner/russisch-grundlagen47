@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Dialog im Geschäft</title>
+    <style>
+        :root {
+            --primary: #3f51b5;
+            --bg-color: #e0e0e0; /* Neutrales Grau für Hintergrund */
+            --chat-bg: #ece5dd;  /* WhatsApp-ähnlicher Hintergrund */
+            
+            /* Sprechblasen */
+            --bubble-seller: #ffffff;
+            --bubble-customer: #dcf8c6;
+            
+            /* Feedback */
+            --correct-bg: #4caf50;
+            --correct-text: #fff;
+            --wrong-bg: #f44336;
+            --wrong-text: #fff;
+            --btn-default: #f0f0f0;
+            --btn-border: #ccc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px 10px;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 90vh; /* Fast volle Höhe für Chat-Feeling */
+        }
+
+        /* Header */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        h1 { margin: 0; font-size: 1.2rem; }
+        p.subtitle { margin: 5px 0 0; font-size: 0.9rem; opacity: 0.9; }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            background-color: var(--chat-bg);
+            padding: 20px;
+            overflow-y: auto; /* Scrollbar für den Chat */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Messages */
+        .message {
+            max-width: 85%;
+            padding: 10px 15px;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.seller {
+            align-self: flex-start;
+            background-color: var(--bubble-seller);
+            border-top-left-radius: 0;
+        }
+
+        .message.customer {
+            align-self: flex-end;
+            background-color: var(--bubble-customer);
+            border-top-right-radius: 0;
+        }
+
+        .role-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .text-content {
+            font-size: 1rem;
+        }
+
+        /* --- Interaktive Elemente --- */
+        .options-container {
+            margin-top: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .opt-btn {
+            background-color: var(--btn-default);
+            border: 1px solid var(--btn-border);
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .opt-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Feedback */
+        .opt-btn.correct {
+            background-color: var(--correct-bg);
+            color: var(--correct-text);
+            border-color: var(--correct-bg);
+            cursor: default;
+        }
+
+        .opt-btn.wrong {
+            background-color: var(--wrong-bg);
+            color: var(--wrong-text);
+            border-color: var(--wrong-bg);
+            animation: shake 0.4s;
+        }
+
+        .opt-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Die Lücke im Text */
+        .gap-placeholder {
+            display: inline-block;
+            border-bottom: 2px solid var(--primary);
+            min-width: 50px;
+            color: var(--primary);
+            font-weight: bold;
+            text-align: center;
+            padding: 0 4px;
+        }
+        
+        .gap-placeholder.filled {
+            border-bottom-color: transparent;
+            color: #2e7d32;
+        }
+
+        /* Erklärung / Hint */
+        .hint-box {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 8px;
+            font-style: italic;
+            border-top: 1px dashed #ccc;
+            padding-top: 4px;
+            display: none; /* Erst sichtbar wenn gelöst */
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            50% { transform: translateX(4px); }
+            75% { transform: translateX(-4px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Footer / Controls */
+        footer {
+            background-color: #fff;
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button.ctrl-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Im Geschäft (В магазине)</h1>
+        <p class="subtitle">Wählen Sie die richtige Form (Genitiv oder Akkusativ).</p>
+    </header>
+
+    <div id="chat-area" class="chat-area">
+        <!-- Dialog wird hier generiert -->
+    </div>
+
+    <footer>
+        <button class="ctrl-btn btn-reset" onclick="initChat()">Dialog neu starten</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </footer>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        role: 'seller' (Verkäufer) oder 'customer' (Kunde)
+        textPre: Text vor der Lücke
+        textPost: Text nach der Lücke (optional)
+        hasGap: true/false (manche Zeilen sind nur Kontext)
+        
+        Wenn hasGap = true:
+        correct: Das richtige Wort
+        distractors: Falsche Optionen
+        hint: Erklärung
+    */
+    const dialogue = [
+        {
+            role: 'customer',
+            textPre: 'Здравствуйте! У вас есть свежий хлеб?',
+            hasGap: false
+        },
+        {
+            role: 'seller',
+            textPre: 'Здравствуйте! К сожалению, у нас уже нет',
+            textPost: '.',
+            hasGap: true,
+            correct: 'хлеба',
+            distractors: ['хлеб'],
+            hint: 'нет + Genitiv'
+        },
+        {
+            role: 'customer',
+            textPre: 'Жаль. А молоко? Я не вижу',
+            textPost: 'на полке.',
+            hasGap: true,
+            correct: 'молока', // oder 'молоко' (Akk) wenn "Ich sehe die Flasche nicht". Aber "Ich sehe kein Milch" (allgemein) -> Gen. Hier nehmen wir Genitiv als "nicht vorhanden".
+            // Korrektur für Eindeutigkeit: "Я не вижу..." bei konkreten Dingen oft Akk. 
+            // Machen wir es eindeutig: "А молока тоже нет?" -> Seller antwortet.
+            // Ändern wir den Satz des Kunden:
+            textPre: 'Жаль. А молоко у вас есть? Я не вижу',
+            textPost: '.',
+            correct: 'молока', // Bei Negation + Sehen oft Genitiv, wenn es gar nicht da ist.
+            distractors: ['молоко'],
+            hint: 'Verneinte Wahrnehmung (nicht da) -> Genitiv'
+        },
+        {
+            role: 'seller',
+            textPre: 'Да,',
+            textPost: 'сегодня тоже нет. Машина не приехала.',
+            hasGap: true,
+            correct: 'молока',
+            distractors: ['молоко'],
+            hint: 'нет + Genitiv'
+        },
+        {
+            role: 'customer',
+            textPre: 'Кошмар! Ну ладно. Тогда дайте мне вон ту',
+            textPost: '.',
+            hasGap: true,
+            correct: 'рыбу',
+            distractors: ['рыбы'],
+            hint: 'Geben Sie mir... (Konkret, Positiv!) -> Akkusativ' 
+            // Moment, das ist Positiv. Aufgabe ist Negation? 
+            // Prompt sagt: "Dinge nicht vorhanden oder nicht möchte".
+            // Bauen wir eine Ablehnung ein.
+        },
+        // Ändern wir den Flow für "Nicht wollen":
+        {
+            role: 'seller',
+            textPre: 'Может быть, вы хотите эту колбасу? Она очень вкусная.',
+            hasGap: false
+        },
+        {
+            role: 'customer',
+            textPre: 'Нет, спасибо. Я не хочу',
+            textPost: '.',
+            hasGap: true,
+            correct: 'эту колбасу',
+            distractors: ['этой колбасы'],
+            hint: 'Konkretes Objekt nicht wollen -> Akkusativ'
+        },
+        {
+            role: 'seller',
+            textPre: 'Хорошо. Что-нибудь ещё?',
+            hasGap: false
+        },
+        {
+            role: 'customer',
+            textPre: 'Нет, спасибо. Я ничего не хочу. Ой, я не могу найти',
+            textPost: '...',
+            hasGap: true,
+            correct: 'кошелёк',
+            distractors: ['кошелька'],
+            hint: 'Etwas (konkret) nicht finden -> Akkusativ'
+        },
+        {
+            role: 'seller',
+            textPre: 'Вы забыли',
+            textPost: '?',
+            hasGap: true,
+            correct: 'деньги',
+            distractors: ['денег'],
+            hint: 'Vergessen (Konkret) -> Akkusativ'
+        },
+        {
+            role: 'customer',
+            textPre: 'Кажется, да. У меня нет',
+            textPost: '.',
+            hasGap: true,
+            correct: 'денег',
+            distractors: ['деньги'],
+            hint: 'нет + Genitiv'
+        }
+    ];
+
+    const chatArea = document.getElementById('chat-area');
+
+    // Mischen
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function initChat() {
+        chatArea.innerHTML = '';
+
+        dialogue.forEach((line, index) => {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${line.role}`;
+            msgDiv.id = `msg-${index}`;
+
+            // Label (Wer spricht?)
+            const roleSpan = document.createElement('div');
+            roleSpan.className = 'role-label';
+            roleSpan.innerText = line.role === 'seller' ? 'Verkäufer (Продавец)' : 'Kunde (Покупатель)';
+            msgDiv.appendChild(roleSpan);
+
+            // Inhalt Container
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'text-content';
+
+            if (!line.hasGap) {
+                // Einfacher Text
+                contentDiv.innerText = line.textPre;
+            } else {
+                // Text mit Lücke und Buttons
+                // 1. Textteil
+                const textSpan = document.createElement('span');
+                textSpan.innerText = line.textPre + " ";
+                contentDiv.appendChild(textSpan);
+
+                // 2. Platzhalter für die Lücke (im Textfluss)
+                const gapSpan = document.createElement('span');
+                gapSpan.className = 'gap-placeholder';
+                gapSpan.id = `gap-${index}`;
+                gapSpan.innerText = "___";
+                contentDiv.appendChild(gapSpan);
+
+                // 3. Text danach
+                if (line.textPost) {
+                    const postSpan = document.createElement('span');
+                    postSpan.innerText = " " + line.textPost;
+                    contentDiv.appendChild(postSpan);
+                }
+
+                // 4. Buttons Container (unter dem Text)
+                const optsDiv = document.createElement('div');
+                optsDiv.className = 'options-container';
+                optsDiv.id = `opts-${index}`;
+
+                // Optionen erstellen
+                let opts = [...line.distractors];
+                opts.push(line.correct);
+                opts = shuffle(opts);
+
+                opts.forEach(optText => {
+                    const btn = document.createElement('button');
+                    btn.className = 'opt-btn';
+                    btn.innerText = optText;
+                    
+                    const isCorrect = (optText === line.correct);
+
+                    btn.onclick = function() {
+                        checkAnswer(index, optText, isCorrect, this, line.hint);
+                    };
+                    optsDiv.appendChild(btn);
+                });
+                contentDiv.appendChild(optsDiv);
+
+                // 5. Hint Box (versteckt)
+                const hintDiv = document.createElement('div');
+                hintDiv.className = 'hint-box';
+                hintDiv.id = `hint-${index}`;
+                hintDiv.innerText = "Info: " + line.hint;
+                contentDiv.appendChild(hintDiv);
+            }
+
+            msgDiv.appendChild(contentDiv);
+            chatArea.appendChild(msgDiv);
+        });
+    }
+
+    function checkAnswer(index, text, isCorrect, btn, hintText) {
+        const gap = document.getElementById(`gap-${index}`);
+        const optsDiv = document.getElementById(`opts-${index}`);
+        const hintBox = document.getElementById(`hint-${index}`);
+        const allBtns = optsDiv.querySelectorAll('.opt-btn');
+
+        // Styles zurücksetzen
+        allBtns.forEach(b => b.classList.remove('wrong'));
+
+        if (isCorrect) {
+            // Lücke füllen
+            gap.innerText = text;
+            gap.classList.add('filled');
+
+            // Button grün
+            btn.classList.add('correct');
+
+            // Hint zeigen
+            hintBox.style.display = 'block';
+
+            // Interaktion sperren
+            allBtns.forEach(b => b.classList.add('disabled'));
+        } else {
+            // Button rot + shake
+            btn.classList.add('wrong');
+        }
+    }
+
+    function solveAll() {
+        dialogue.forEach((line, index) => {
+            if (!line.hasGap) return;
+
+            const gap = document.getElementById(`gap-${index}`);
+            const optsDiv = document.getElementById(`opts-${index}`);
+            const hintBox = document.getElementById(`hint-${index}`);
+            const buttons = optsDiv.querySelectorAll('.opt-btn');
+
+            // Lücke füllen
+            gap.innerText = line.correct;
+            gap.classList.add('filled');
+            
+            // Hint zeigen
+            hintBox.style.display = 'block';
+
+            // Buttons updaten
+            buttons.forEach(btn => {
+                btn.classList.remove('wrong');
+                btn.classList.add('disabled');
+                if (btn.innerText === line.correct) {
+                    btn.classList.add('correct');
+                }
+            });
+        });
+    }
+
+    // Start
+    window.onload = initChat;
+
+</script>
+
+</body>
+</html>
