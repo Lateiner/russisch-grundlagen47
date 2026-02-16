@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Russisch: Frage & Antwort (Verneinung)</title>
+    <style>
+        :root {
+            --primary: #3f51b5;     /* Indigo */
+            --bg-color: #e5ddd5;    /* Chat-Hintergrund ähnlich WhatsApp */
+            --chat-bg-left: #ffffff;
+            --chat-bg-right: #dcf8c6;
+            --text-color: #333;
+            
+            /* Feedback */
+            --success: #4caf50;
+            --error: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 15px;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(255,255,255,0.6);
+            padding: 20px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
+        }
+
+        .intro {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border-left: 5px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- Grid für die Dialoge --- */
+        .dialog-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .dialog-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* --- Die Chat-Karte --- */
+        .chat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border: 1px solid #ddd;
+        }
+
+        /* Sprechblasen */
+        .bubble {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 90%;
+            position: relative;
+            font-size: 1rem;
+        }
+
+        .bubble-question {
+            background-color: var(--chat-bg-left);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            color: #444;
+        }
+        
+        .bubble-question::before {
+            content: '❓';
+            margin-right: 5px;
+        }
+
+        .bubble-answer {
+            background-color: var(--chat-bg-right);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            text-align: right;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 60px;
+            border-bottom: 2px dashed #888;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            padding: 0 5px;
+        }
+
+        .gap.filled {
+            border-bottom: none;
+            color: #2e7d32; /* Grün für ausgefüllt */
+        }
+
+        /* --- Auswahl-Buttons --- */
+        .options-area {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end; /* Rechtsbündig unter der Antwort */
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            padding: 8px 16px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background-color: #e0e0e0;
+            transform: translateY(-1px);
+        }
+
+        /* Feedback Styles */
+        .option-btn.correct {
+            background-color: var(--success);
+            color: white;
+            border-color: var(--success);
+            cursor: default;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error);
+            color: white;
+            border-color: var(--error);
+            animation: shake 0.4s;
+        }
+
+        .option-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Hinweis */
+        .hint-text {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: -10px;
+            text-align: right;
+            font-style: italic;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button.ctrl-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+
+        button.ctrl-btn:active { transform: scale(0.95); }
+
+        .btn-reset { background-color: #ff9800; }
+        .btn-solve { background-color: #2196f3; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Dialoge: Frage & Antwort</h1>
+    
+    <div class="intro">
+        <p><strong>Anleitung:</strong> Vervollständigen Sie die verneinten Antworten im Chat.</p>
+        <p>Klicken Sie auf das richtige Wort. Es wird dann automatisch in die Lücke eingesetzt.</p>
+    </div>
+
+    <div id="dialog-container" class="dialog-grid">
+        <!-- Dialoge werden hier generiert -->
+    </div>
+
+    <div class="controls">
+        <button class="ctrl-btn btn-reset" onclick="renderTasks()">Alles zurücksetzen</button>
+        <button class="ctrl-btn btn-solve" onclick="solveAll()">Lösungen anzeigen</button>
+    </div>
+</div>
+
+<script>
+    /*
+        Datenstruktur:
+        q: Frage
+        a_pre: Antwort Satzanfang (z.B. "Нет, я не купил")
+        correct: Richtige Antwort (Gen/Akk)
+        wrong: Falsche Antwort (Distraktor)
+        hint: Kurzer grammatikalischer Hinweis
+    */
+    const tasks = [
+        // Genitiv (Menge, Abstrakt, Existenz)
+        { 
+            q: "Ты купил хлеб?", 
+            a_pre: "Нет, я не купил", 
+            correct: "хлеба", wrong: "хлеб", 
+            hint: "Lebensmittel/Stoffnamen verneint -> Genitiv" 
+        },
+        { 
+            q: "У тебя есть время?", 
+            a_pre: "Нет, у меня нет", 
+            correct: "времени", wrong: "время", 
+            hint: "Existenzverneinung (нет) -> Genitiv" 
+        },
+        { 
+            q: "Ты получил ответ?", 
+            a_pre: "Нет, я не получил", 
+            correct: "ответа", wrong: "ответ", 
+            hint: "Abstraktes Objekt verneint -> Genitiv" 
+        },
+        { 
+            q: "Ты имеешь право?", 
+            a_pre: "Нет, я не имею", 
+            correct: "права", wrong: "право", 
+            hint: "Ausdruck 'не иметь' -> Genitiv" 
+        },
+        { 
+            q: "Ты нашел выход?", 
+            a_pre: "Нет, я не нашел", 
+            correct: "выхода", wrong: "выход", 
+            hint: "Abstrakt (Ausweg) -> Genitiv" 
+        },
+        { 
+            q: "Здесь есть место?", 
+            a_pre: "Нет, здесь нет", 
+            correct: "места", wrong: "место", 
+            hint: "Existenz (нет) -> Genitiv" 
+        },
+        { 
+            q: "Ты обратил внимание?", 
+            a_pre: "Нет, я не обратил", 
+            correct: "внимания", wrong: "внимание", 
+            hint: "Feste Wendung -> Genitiv" 
+        },
+        { 
+            q: "У вас есть вопросы?", 
+            a_pre: "Нет, у нас нет", 
+            correct: "вопросов", wrong: "вопросы", 
+            hint: "Plural Genitiv bei 'нет'" 
+        },
+        { 
+            q: "Ты видишь смысл?", 
+            a_pre: "Нет, я не вижу", 
+            correct: "смысла", wrong: "смысл", 
+            hint: "Abstrakte Wahrnehmung -> Genitiv" 
+        },
+        { 
+            q: "Ты слышал новости?", 
+            a_pre: "Нет, я не слышал", 
+            correct: "новостей", wrong: "новости", 
+            hint: "Plural Genitiv" 
+        },
+
+        // Akkusativ (Konkret, Namen, Bestimmtes)
+        { 
+            q: "Ты видел Анну?", 
+            a_pre: "Нет, я не видел", 
+            correct: "Анну", wrong: "Анны", 
+            hint: "Name (Person) -> Akkusativ" 
+        },
+        { 
+            q: "Ты читал эту книгу?", 
+            a_pre: "Нет, я не читал", 
+            correct: "эту книгу", wrong: "этой книги", 
+            hint: "Konkretes Objekt (diese) -> Akkusativ" 
+        },
+        { 
+            q: "Ты знаешь Ивана?", 
+            a_pre: "Нет, я не знаю", 
+            correct: "Ивана", wrong: "Иване", 
+            hint: "Name (Belebt) -> Akkusativ" 
+        },
+        { 
+            q: "Ты купил машину?", 
+            a_pre: "Нет, я не купил", 
+            correct: "машину", wrong: "машины", 
+            hint: "Konkretes Objekt -> Akkusativ" 
+        },
+        { 
+            q: "Ты разбил вазу?", 
+            a_pre: "Нет, но я чуть не разбил", 
+            correct: "вазу", wrong: "вазы", 
+            hint: "чуть не (fast) -> Akkusativ" 
+        },
+        { 
+            q: "Ты выучил урок?", 
+            a_pre: "Нет, я не выучил", 
+            correct: "урок", wrong: "урока", 
+            hint: "Konkrete Lektion -> Akkusativ" 
+        },
+        { 
+            q: "Ты взял сумку?", 
+            a_pre: "Нет, я не взял", 
+            correct: "сумку", wrong: "сумки", 
+            hint: "Konkretes Objekt -> Akkusativ" 
+        },
+        { 
+            q: "Ты любишь зиму?", 
+            a_pre: "Нет, я не люблю", 
+            correct: "зиму", wrong: "зимы", 
+            hint: "Allgemeine Vorliebe (Emotion) -> Akkusativ" 
+        },
+        { 
+            q: "Ты ждешь маму?", 
+            a_pre: "Нет, я не жду", 
+            correct: "маму", wrong: "мамы", 
+            hint: "Person -> Akkusativ" 
+        },
+        { 
+            q: "Ты пьёшь воду?", 
+            a_pre: "Нет, я не пью", 
+            correct: "воду", wrong: "воды", 
+            hint: "Flüssigkeit (bestimmt/generell) oft Akkusativ" 
+        }
+    ];
+
+    const container = document.getElementById('dialog-container');
+
+    // Shuffle Array Helper
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function renderTasks() {
+        container.innerHTML = '';
+
+        tasks.forEach((task, index) => {
+            const card = document.createElement('div');
+            card.className = 'chat-card';
+            card.id = `chat-${index}`;
+
+            // 1. Die Frage (Links)
+            const questionBubble = document.createElement('div');
+            questionBubble.className = 'bubble bubble-question';
+            questionBubble.innerText = task.q;
+            card.appendChild(questionBubble);
+
+            // 2. Die Antwort (Rechts) mit Lücke
+            const answerBubble = document.createElement('div');
+            answerBubble.className = 'bubble bubble-answer';
+            answerBubble.innerHTML = `${task.a_pre} <span class="gap" id="gap-${index}">...</span>.`;
+            card.appendChild(answerBubble);
+
+            // 3. Hinweis
+            const hint = document.createElement('div');
+            hint.className = 'hint-text';
+            hint.innerText = task.hint;
+            card.appendChild(hint);
+
+            // 4. Optionen (Buttons)
+            const optionsArea = document.createElement('div');
+            optionsArea.className = 'options-area';
+
+            // Optionen erstellen & mischen
+            let opts = [
+                { txt: task.correct, isCorrect: true },
+                { txt: task.wrong, isCorrect: false }
+            ];
+            opts = shuffle(opts);
+
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.txt;
+                
+                btn.onclick = function() {
+                    handleSelection(index, opt.txt, opt.isCorrect, this, optionsArea);
+                };
+
+                optionsArea.appendChild(btn);
+            });
+
+            card.appendChild(optionsArea);
+            container.appendChild(card);
+        });
+    }
+
+    function handleSelection(index, text, isCorrect, clickedBtn, btnContainer) {
+        const gap = document.getElementById(`gap-${index}`);
+        
+        // Reset styles first within this card
+        const allBtns = btnContainer.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.classList.remove('wrong'));
+
+        if (isCorrect) {
+            // Lücke visuell füllen
+            gap.innerText = text;
+            gap.classList.add('filled');
+            
+            // Button Feedback
+            clickedBtn.classList.add('correct');
+            
+            // Interaktion beenden
+            allBtns.forEach(b => b.classList.add('disabled'));
+        } else {
+            // Button Feedback
+            clickedBtn.classList.add('wrong');
+            // Benutzer kann es erneut versuchen
+        }
+    }
+
+    function solveAll() {
+        tasks.forEach((task, index) => {
+            const gap = document.getElementById(`gap-${index}`);
+            const card = document.getElementById(`chat-${index}`);
+            const optionsArea = card.querySelector('.options-area');
+            const btns = optionsArea.querySelectorAll('.option-btn');
+
+            // Lücke füllen
+            gap.innerText = task.correct;
+            gap.classList.add('filled');
+
+            // Buttons aktualisieren
+            btns.forEach(b => {
+                b.classList.remove('wrong');
+                b.classList.add('disabled');
+                if (b.innerText === task.correct) {
+                    b.classList.add('correct');
+                }
+            });
+        });
+    }
+
+    // Init
+    window.onload = renderTasks;
+
+</script>
+
+</body>
+</html>
